@@ -1,0 +1,265 @@
+{
+  "depot": {
+    "id": "depot-jnt",
+    "name": "J&T Express Drop Point Juanda Samarinda",
+    "lat": -0.4897,
+    "lng": 117.1352
+  },
+  "scenarios": [
+    {
+      "id": "scenario-10",
+      "name": "Skenario 10 Paket (2 Kurir - Samarinda Ulu & Ilir)",
+      "description": "Pengujian skala kecil untuk verifikasi cepat alokasi KNN dan optimasi ACO open TSP.",
+      "couriers": [
+        {
+          "id": "c1",
+          "name": "Kurir A (Samarinda Ulu)",
+          "color": "#3B82F6",
+          "ref_points": [
+            { "id": "ref-c1-1", "name": "Ref Juanda", "lat": -0.4850, "lng": 117.1300 },
+            { "id": "ref-c1-2", "name": "Ref Air Putih", "lat": -0.4780, "lng": 117.1250 }
+          ]
+        },
+        {
+          "id": "c2",
+          "name": "Kurir B (Samarinda Ilir)",
+          "color": "#EF4444",
+          "ref_points": [
+            { "id": "ref-c2-1", "name": "Ref Pelabuhan", "lat": -0.5020, "lng": 117.1520 },
+            { "id": "ref-c2-2", "name": "Ref Pasar Pagi", "lat": -0.5050, "lng": 117.1470 }
+          ]
+        }
+      ],
+      "packages": [
+        { "id": "P01", "name": "Paket Jl. Antasari No. 12", "lat": -0.4880, "lng": 117.1310 },
+        { "id": "P02", "name": "Paket Jl. P. Suryanata No. 45", "lat": -0.4750, "lng": 117.1200 },
+        { "id": "P03", "name": "Paket Perum Juanda Permai", "lat": -0.4830, "lng": 117.1380 },
+        { "id": "P04", "name": "Paket Jl. Kadrie Oening Blok B", "lat": -0.4720, "lng": 117.1330 },
+        { "id": "P05", "name": "Paket Jl. Siradj Salman No. 8", "lat": -0.4920, "lng": 117.1280 },
+        { "id": "P06", "name": "Paket Jl. Panglima Batur No. 19", "lat": -0.5040, "lng": 117.1490 },
+        { "id": "P07", "name": "Paket Jl. Mulawarman No. 22", "lat": -0.5010, "lng": 117.1550 },
+        { "id": "P08", "name": "Paket Mall Mesra Indah", "lat": -0.4990, "lng": 117.1440 },
+        { "id": "P09", "name": "Paket Ruko Citra Niaga", "lat": -0.5030, "lng": 117.1460 },
+        { "id": "P10", "name": "Paket Jl. Dermaga Pelabuhan", "lat": -0.5060, "lng": 117.1530 }
+      ]
+    },
+    {
+      "id": "scenario-20",
+      "name": "Skenario 20 Paket (3 Kurir - Ulu, Ilir, Sungai Kunjang)",
+      "description": "Pengujian skala menengah 20 paket terbagi di 3 zona dengan 3 kurir.",
+      "couriers": [
+        {
+          "id": "c1",
+          "name": "Kurir A (Samarinda Ulu)",
+          "color": "#3B82F6",
+          "ref_points": [
+            { "id": "ref-c1-1", "name": "Ref Juanda", "lat": -0.4850, "lng": 117.1300 },
+            { "id": "ref-c1-2", "name": "Ref Kadrie Oening", "lat": -0.4730, "lng": 117.1310 }
+          ]
+        },
+        {
+          "id": "c2",
+          "name": "Kurir B (Samarinda Ilir)",
+          "color": "#10B981",
+          "ref_points": [
+            { "id": "ref-c2-1", "name": "Ref Pelabuhan", "lat": -0.5020, "lng": 117.1520 },
+            { "id": "ref-c2-2", "name": "Ref Slamet Riyadi", "lat": -0.4970, "lng": 117.1420 }
+          ]
+        },
+        {
+          "id": "c3",
+          "name": "Kurir C (Sungai Kunjang)",
+          "color": "#F59E0B",
+          "ref_points": [
+            { "id": "ref-c3-1", "name": "Ref Karang Anyar", "lat": -0.5120, "lng": 117.1180 },
+            { "id": "ref-c3-2", "name": "Ref Loa Bakung", "lat": -0.5250, "lng": 117.1080 }
+          ]
+        }
+      ],
+      "packages": [
+        { "id": "P01", "name": "Paket Jl. Antasari No. 12", "lat": -0.4880, "lng": 117.1310 },
+        { "id": "P02", "name": "Paket Jl. P. Suryanata No. 45", "lat": -0.4750, "lng": 117.1200 },
+        { "id": "P03", "name": "Paket Perum Juanda Permai", "lat": -0.4830, "lng": 117.1380 },
+        { "id": "P04", "name": "Paket Jl. Kadrie Oening Blok B", "lat": -0.4720, "lng": 117.1330 },
+        { "id": "P05", "name": "Paket Jl. Siradj Salman No. 8", "lat": -0.4920, "lng": 117.1280 },
+        { "id": "P06", "name": "Paket Jl. Anggur No. 14", "lat": -0.4790, "lng": 117.1350 },
+        { "id": "P07", "name": "Paket Jl. Ramania Raya", "lat": -0.4770, "lng": 117.1390 },
+        { "id": "P08", "name": "Paket Jl. Panglima Batur No. 19", "lat": -0.5040, "lng": 117.1490 },
+        { "id": "P09", "name": "Paket Jl. Mulawarman No. 22", "lat": -0.5010, "lng": 117.1550 },
+        { "id": "P10", "name": "Paket Mall Mesra Indah", "lat": -0.4990, "lng": 117.1440 },
+        { "id": "P11", "name": "Paket Ruko Citra Niaga", "lat": -0.5030, "lng": 117.1460 },
+        { "id": "P12", "name": "Paket Jl. Dermaga Pelabuhan", "lat": -0.5060, "lng": 117.1530 },
+        { "id": "P13", "name": "Paket Jl. Lambung Mangkurat", "lat": -0.4940, "lng": 117.1580 },
+        { "id": "P14", "name": "Paket Jl. Cendana No. 2", "lat": -0.5080, "lng": 117.1250 },
+        { "id": "P15", "name": "Paket Jl. Banggeris No. 7", "lat": -0.5150, "lng": 117.1220 },
+        { "id": "P16", "name": "Paket Jl. MT Haryono No. 33", "lat": -0.5050, "lng": 117.1290 },
+        { "id": "P17", "name": "Paket Jl. Jakarta Loa Bakung", "lat": -0.5280, "lng": 117.1050 },
+        { "id": "P18", "name": "Paket Perum Korpri Loa Bakung", "lat": -0.5220, "lng": 117.1120 },
+        { "id": "P19", "name": "Paket Jl. Teuku Umar No. 10", "lat": -0.5180, "lng": 117.1150 },
+        { "id": "P20", "name": "Paket Pergudangan Kunjang", "lat": -0.5260, "lng": 117.1020 }
+      ]
+    },
+    {
+      "id": "scenario-30",
+      "name": "Skenario 30 Paket (3 Kurir)",
+      "description": "Pengujian 30 paket dengan kepadatan bervariasi di wilayah perkotaan Samarinda.",
+      "couriers": [
+        {
+          "id": "c1",
+          "name": "Kurir A (Ulu - Juanda)",
+          "color": "#3B82F6",
+          "ref_points": [
+            { "id": "ref-c1-1", "name": "Ref Juanda", "lat": -0.4850, "lng": 117.1300 },
+            { "id": "ref-c1-2", "name": "Ref Suryanata", "lat": -0.4740, "lng": 117.1220 }
+          ]
+        },
+        {
+          "id": "c2",
+          "name": "Kurir B (Ilir & Pinang)",
+          "color": "#10B981",
+          "ref_points": [
+            { "id": "ref-c2-1", "name": "Ref Mulawarman", "lat": -0.5010, "lng": 117.1550 },
+            { "id": "ref-c2-2", "name": "Ref Mugirejo", "lat": -0.4650, "lng": 117.1680 }
+          ]
+        },
+        {
+          "id": "c3",
+          "name": "Kurir C (Sungai Kunjang)",
+          "color": "#8B5CF6",
+          "ref_points": [
+            { "id": "ref-c3-1", "name": "Ref Cendana", "lat": -0.5100, "lng": 117.1230 },
+            { "id": "ref-c3-2", "name": "Ref Loa Bakung", "lat": -0.5250, "lng": 117.1080 }
+          ]
+        }
+      ],
+      "packages": [
+        { "id": "P01", "name": "Jl. Antasari No. 12", "lat": -0.4880, "lng": 117.1310 },
+        { "id": "P02", "name": "Jl. P. Suryanata No. 45", "lat": -0.4750, "lng": 117.1200 },
+        { "id": "P03", "name": "Perum Juanda Permai", "lat": -0.4830, "lng": 117.1380 },
+        { "id": "P04", "name": "Jl. Kadrie Oening Blok B", "lat": -0.4720, "lng": 117.1330 },
+        { "id": "P05", "name": "Jl. Siradj Salman No. 8", "lat": -0.4920, "lng": 117.1280 },
+        { "id": "P06", "name": "Jl. Anggur No. 14", "lat": -0.4790, "lng": 117.1350 },
+        { "id": "P07", "name": "Jl. Ramania Raya", "lat": -0.4770, "lng": 117.1390 },
+        { "id": "P08", "name": "Jl. AW Sjahranie No. 90", "lat": -0.4680, "lng": 117.1380 },
+        { "id": "P09", "name": "Perum Puspita Bengkuring", "lat": -0.4590, "lng": 117.1420 },
+        { "id": "P10", "name": "Jl. Pramuka Kampus Unmul", "lat": -0.4660, "lng": 117.1510 },
+        { "id": "P11", "name": "Jl. Panglima Batur No. 19", "lat": -0.5040, "lng": 117.1490 },
+        { "id": "P12", "name": "Jl. Mulawarman No. 22", "lat": -0.5010, "lng": 117.1550 },
+        { "id": "P13", "name": "Mall Mesra Indah", "lat": -0.4990, "lng": 117.1440 },
+        { "id": "P14", "name": "Ruko Citra Niaga", "lat": -0.5030, "lng": 117.1460 },
+        { "id": "P15", "name": "Jl. Dermaga Pelabuhan", "lat": -0.5060, "lng": 117.1530 },
+        { "id": "P16", "name": "Jl. Lambung Mangkurat", "lat": -0.4940, "lng": 117.1580 },
+        { "id": "P17", "name": "Jl. Otto Iskandardinata", "lat": -0.4910, "lng": 117.1640 },
+        { "id": "P18", "name": "Jl. DI Panjaitan Blok C", "lat": -0.4620, "lng": 117.1720 },
+        { "id": "P19", "name": "Jl. Gerilya Sungai Pinang", "lat": -0.4830, "lng": 117.1660 },
+        { "id": "P20", "name": "Jl. Sentosa Dalam", "lat": -0.4870, "lng": 117.1620 },
+        { "id": "P21", "name": "Jl. Cendana No. 2", "lat": -0.5080, "lng": 117.1250 },
+        { "id": "P22", "name": "Jl. Banggeris No. 7", "lat": -0.5150, "lng": 117.1220 },
+        { "id": "P23", "name": "Jl. MT Haryono No. 33", "lat": -0.5050, "lng": 117.1290 },
+        { "id": "P24", "name": "Jl. Jakarta Loa Bakung", "lat": -0.5280, "lng": 117.1050 },
+        { "id": "P25", "name": "Perum Korpri Loa Bakung", "lat": -0.5220, "lng": 117.1120 },
+        { "id": "P26", "name": "Jl. Teuku Umar No. 10", "lat": -0.5180, "lng": 117.1150 },
+        { "id": "P27", "name": "Pergudangan Kunjang", "lat": -0.5260, "lng": 117.1020 },
+        { "id": "P28", "name": "Jl. Ring Road Karang Asam", "lat": -0.5110, "lng": 117.1130 },
+        { "id": "P29", "name": "Jl. Adam Malik", "lat": -0.5020, "lng": 117.1190 },
+        { "id": "P30", "name": "Jl. Nusyirwan Ismail", "lat": -0.4950, "lng": 117.1100 }
+      ]
+    },
+    {
+      "id": "scenario-50",
+      "name": "Skenario 50 Paket (Batas Maksimal - 4 Kurir)",
+      "description": "Pengujian batas maksimal kapasitas sistem (50 paket) terdistribusi ke 4 wilayah kurir.",
+      "couriers": [
+        {
+          "id": "c1",
+          "name": "Kurir A (Samarinda Ulu)",
+          "color": "#3B82F6",
+          "ref_points": [
+            { "id": "ref-c1-1", "name": "Ref Juanda", "lat": -0.4850, "lng": 117.1300 },
+            { "id": "ref-c1-2", "name": "Ref Suryanata", "lat": -0.4740, "lng": 117.1220 }
+          ]
+        },
+        {
+          "id": "c2",
+          "name": "Kurir B (Samarinda Ilir)",
+          "color": "#10B981",
+          "ref_points": [
+            { "id": "ref-c2-1", "name": "Ref Pelabuhan", "lat": -0.5020, "lng": 117.1520 },
+            { "id": "ref-c2-2", "name": "Ref Mulawarman", "lat": -0.5010, "lng": 117.1550 }
+          ]
+        },
+        {
+          "id": "c3",
+          "name": "Kurir C (Sungai Kunjang)",
+          "color": "#F59E0B",
+          "ref_points": [
+            { "id": "ref-c3-1", "name": "Ref Cendana", "lat": -0.5100, "lng": 117.1230 },
+            { "id": "ref-c3-2", "name": "Ref Loa Bakung", "lat": -0.5250, "lng": 117.1080 }
+          ]
+        },
+        {
+          "id": "c4",
+          "name": "Kurir D (Samarinda Seberang)",
+          "color": "#8B5CF6",
+          "ref_points": [
+            { "id": "ref-c4-1", "name": "Ref Seberang Mesjid", "lat": -0.5180, "lng": 117.1480 },
+            { "id": "ref-c4-2", "name": "Ref Harun Nafsi", "lat": -0.5290, "lng": 117.1550 }
+          ]
+        }
+      ],
+      "packages": [
+        { "id": "P01", "name": "Jl. Antasari No. 12", "lat": -0.4880, "lng": 117.1310 },
+        { "id": "P02", "name": "Jl. P. Suryanata No. 45", "lat": -0.4750, "lng": 117.1200 },
+        { "id": "P03", "name": "Perum Juanda Permai", "lat": -0.4830, "lng": 117.1380 },
+        { "id": "P04", "name": "Jl. Kadrie Oening Blok B", "lat": -0.4720, "lng": 117.1330 },
+        { "id": "P05", "name": "Jl. Siradj Salman No. 8", "lat": -0.4920, "lng": 117.1280 },
+        { "id": "P06", "name": "Jl. Anggur No. 14", "lat": -0.4790, "lng": 117.1350 },
+        { "id": "P07", "name": "Jl. Ramania Raya", "lat": -0.4770, "lng": 117.1390 },
+        { "id": "P08", "name": "Jl. AW Sjahranie No. 90", "lat": -0.4680, "lng": 117.1380 },
+        { "id": "P09", "name": "Perum Puspita Bengkuring", "lat": -0.4590, "lng": 117.1420 },
+        { "id": "P10", "name": "Jl. Pramuka Kampus Unmul", "lat": -0.4660, "lng": 117.1510 },
+        { "id": "P11", "name": "Jl. Panglima Batur No. 19", "lat": -0.5040, "lng": 117.1490 },
+        { "id": "P12", "name": "Jl. Mulawarman No. 22", "lat": -0.5010, "lng": 117.1550 },
+        { "id": "P13", "name": "Mall Mesra Indah", "lat": -0.4990, "lng": 117.1440 },
+        { "id": "P14", "name": "Ruko Citra Niaga", "lat": -0.5030, "lng": 117.1460 },
+        { "id": "P15", "name": "Jl. Dermaga Pelabuhan", "lat": -0.5060, "lng": 117.1530 },
+        { "id": "P16", "name": "Jl. Lambung Mangkurat", "lat": -0.4940, "lng": 117.1580 },
+        { "id": "P17", "name": "Jl. Otto Iskandardinata", "lat": -0.4910, "lng": 117.1640 },
+        { "id": "P18", "name": "Jl. DI Panjaitan Blok C", "lat": -0.4620, "lng": 117.1720 },
+        { "id": "P19", "name": "Jl. Gerilya Sungai Pinang", "lat": -0.4830, "lng": 117.1660 },
+        { "id": "P20", "name": "Jl. Sentosa Dalam", "lat": -0.4870, "lng": 117.1620 },
+        { "id": "P21", "name": "Jl. Cendana No. 2", "lat": -0.5080, "lng": 117.1250 },
+        { "id": "P22", "name": "Jl. Banggeris No. 7", "lat": -0.5150, "lng": 117.1220 },
+        { "id": "P23", "name": "Jl. MT Haryono No. 33", "lat": -0.5050, "lng": 117.1290 },
+        { "id": "P24", "name": "Jl. Jakarta Loa Bakung", "lat": -0.5280, "lng": 117.1050 },
+        { "id": "P25", "name": "Perum Korpri Loa Bakung", "lat": -0.5220, "lng": 117.1120 },
+        { "id": "P26", "name": "Jl. Teuku Umar No. 10", "lat": -0.5180, "lng": 117.1150 },
+        { "id": "P27", "name": "Pergudangan Kunjang", "lat": -0.5260, "lng": 117.1020 },
+        { "id": "P28", "name": "Jl. Ring Road Karang Asam", "lat": -0.5110, "lng": 117.1130 },
+        { "id": "P29", "name": "Jl. Adam Malik", "lat": -0.5020, "lng": 117.1190 },
+        { "id": "P30", "name": "Jl. Nusyirwan Ismail", "lat": -0.4950, "lng": 117.1100 },
+        { "id": "P31", "name": "Jl. Hos Cokroaminoto", "lat": -0.5130, "lng": 117.1420 },
+        { "id": "P32", "name": "Jl. Bung Tomo Baqa", "lat": -0.5190, "lng": 117.1460 },
+        { "id": "P33", "name": "Jl. Pattimura Mangkupalas", "lat": -0.5270, "lng": 117.1510 },
+        { "id": "P34", "name": "Jl. Harun Nafsi Blok D", "lat": -0.5310, "lng": 117.1560 },
+        { "id": "P35", "name": "Perum Pesona Mahakam", "lat": -0.5240, "lng": 117.1430 },
+        { "id": "P36", "name": "Jl. APT Pranoto Seberang", "lat": -0.5350, "lng": 117.1590 },
+        { "id": "P37", "name": "Ruko Palaran Indah", "lat": -0.5400, "lng": 117.1630 },
+        { "id": "P38", "name": "Jl. Trikora Simpang Pasir", "lat": -0.5380, "lng": 117.1520 },
+        { "id": "P39", "name": "Jl. Gotong Royong", "lat": -0.5320, "lng": 117.1480 },
+        { "id": "P40", "name": "Jl. Sultan Hasanuddin Baqa", "lat": -0.5160, "lng": 117.1440 },
+        { "id": "P41", "name": "Jl. Juanda 8 Gang 1", "lat": -0.4870, "lng": 117.1330 },
+        { "id": "P42", "name": "Jl. P. Antasari Gang 2", "lat": -0.4890, "lng": 117.1290 },
+        { "id": "P43", "name": "Jl. KS Tubun Dalam", "lat": -0.4980, "lng": 117.1360 },
+        { "id": "P44", "name": "Jl. P. Hidayatullah", "lat": -0.5000, "lng": 117.1510 },
+        { "id": "P45", "name": "Jl. Gatot Subroto", "lat": -0.4850, "lng": 117.1530 },
+        { "id": "P46", "name": "Jl. KH Wahid Hasyim 1", "lat": -0.4630, "lng": 117.1550 },
+        { "id": "P47", "name": "Jl. Untung Suropati", "lat": -0.5140, "lng": 117.1190 },
+        { "id": "P48", "name": "Jl. Ir. Sutami Pergudangan", "lat": -0.5220, "lng": 117.1090 },
+        { "id": "P49", "name": "Jl. PM Noor Sempaja", "lat": -0.4550, "lng": 117.1520 },
+        { "id": "P50", "name": "Jl. Pasundan Jawa", "lat": -0.4930, "lng": 117.1340 }
+      ]
+    }
+  ]
+}
+

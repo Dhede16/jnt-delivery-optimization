@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Leaflet Custom Marker & Pulse */
+.custom-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-pin {
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 0;
+  position: absolute;
+  transform: rotate(-45deg);
+  left: 50%;
+  top: 50%;
+  margin: -20px 0 0 -16px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-content {
+  transform: rotate(45deg);
+  color: white;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.pulse-ring {
+  border: 3px solid #ED1C24;
+  -webkit-border-radius: 30px;
+  height: 36px;
+  width: 36px;
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  -webkit-animation: pulsate 1.8s ease-out;
+  -webkit-animation-iteration-count: infinite; 
+  opacity: 0.0;
+}
+
+@keyframes pulsate {
+  0% {-webkit-transform: scale(0.6, 0.6); opacity: 0.0;}
+  50% {opacity: 1.0;}
+  100% {-webkit-transform: scale(1.4, 1.4); opacity: 0.0;}
+}
+
