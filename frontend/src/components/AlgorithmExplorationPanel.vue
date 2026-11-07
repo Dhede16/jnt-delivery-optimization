@@ -112,7 +112,7 @@
         >
           <span>🐜</span>
           <span>2. Optimasi Rute ACO</span>
-          <span v-if="store.isRouteStarted" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span v-if="store.knnSteps.length > 0" class="w-2 h-2 rounded-full bg-emerald-500"></span>
         </button>
 
         <button 
@@ -152,7 +152,7 @@
           <div v-if="store.knnSteps.length === 0" class="text-center py-12 text-slate-400">
             <div class="text-4xl mb-3">📍</div>
             <p class="font-semibold text-slate-600">Belum Ada Hasil Alokasi KNN</p>
-            <p class="text-xs text-slate-400 mt-1">Tekan tombol <strong>Hitung Rute</strong> di panel bawah untuk menjalankan alokasi.</p>
+            <p class="text-xs text-slate-400 mt-1">Tambahkan paket di peta untuk menjalankan KNN secara otomatis.</p>
           </div>
 
           <!-- Package Step Details -->
@@ -289,10 +289,10 @@
           </div>
 
           <!-- Empty State -->
-          <div v-if="!store.isRouteStarted" class="text-center py-12 text-slate-400">
+          <div v-if="store.knnSteps.length === 0" class="text-center py-12 text-slate-400">
             <div class="text-4xl mb-3">🗺️</div>
             <p class="font-semibold text-slate-600">Belum Ada Rute yang Dihitung</p>
-            <p class="text-xs text-slate-400 mt-1">Tekan tombol <strong>Hitung Rute</strong> di panel bawah untuk menjalankan optimasi ACO.</p>
+            <p class="text-xs text-slate-400 mt-1">Rute ACO akan tampil otomatis setelah paket ditambahkan.</p>
           </div>
 
           <!-- Courier ACO Inspector -->

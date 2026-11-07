@@ -57,8 +57,8 @@ Akses Vite di: **http://localhost:5173**
 
 3. **Panel Bawah (Drawer Masukan Data)**:
    - Panel di bagian bawah yang **dapat diangkat (*lift/expand*)** untuk memasukkan data dan diminimalkan agar pandangan ke peta tetap luas (*clean*).
-   - **Input Paket**: Klik langsung di peta atau pilih skenario uji siap pakai (10, 20, 30, dan 50 paket Samarinda).
-   - **Kelola Kurir**: Tambah/hapus kurir (hingga 10 kurir), atur warna, atur titik acuan.
+   - **Alur Input**: Saat aplikasi dibuka, tentukan 1–10 kurir lalu tambahkan minimal satu titik acuan untuk setiap kurir di peta. Setelah itu, klik peta atau pilih skenario paket; KNN langsung menetapkan kurir dan ACO menampilkan urutan serta rutenya.
+   - **Kelola Kurir**: Atur jumlah kurir dan titik acuan sebelum input paket; warna dan nama kurir dapat disesuaikan.
    - **Parameter**: Atur $k$, saklar *Seimbangkan Beban*, parameter $\alpha, \beta, \rho, Q$, jumlah semut, dan iterasi.
    - **Riwayat Rute**: Tabel langkah per kurir yang bertambah tiap klik **Lanjut**.
 

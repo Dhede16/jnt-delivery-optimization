@@ -22,26 +22,9 @@ export const useAppStore = defineStore('app', {
       lat: -0.4897,
       lng: 117.1352
     },
-    couriers: [
-      {
-        id: 'c1',
-        name: 'Kurir A (Samarinda Ulu)',
-        color: '#3B82F6',
-        ref_points: [
-          { id: 'ref-c1-1', name: 'Ref Juanda', lat: -0.4850, lng: 117.1300 }
-        ]
-      },
-      {
-        id: 'c2',
-        name: 'Kurir B (Samarinda Ilir)',
-        color: '#EF4444',
-        ref_points: [
-          { id: 'ref-c2-1', name: 'Ref Pelabuhan', lat: -0.5020, lng: 117.1520 }
-        ]
-      }
-    ],
+    couriers: [],
     packages: [],
-    activeCourierId: 'c1',
+    activeCourierId: null,
     clickMode: 'package', // 'package' | 'ref_point'
     
     // Parameters
@@ -100,6 +83,9 @@ export const useAppStore = defineStore('app', {
       if (state.couriers.length === 0 || state.packages.length === 0) return false
       return state.couriers.every(c => c.ref_points.length >= 1)
     },
+    canStartPackageInput(state) {
+      return state.couriers.length > 0 && state.couriers.every(c => c.ref_points.length >= 1)
+    },
     canAdvanceAny(state) {
       if (!state.isRouteStarted || state.isCalculating) return false
       return Object.values(state.courierStates).some(cs => !cs.isFinished && cs.remainingPackageIds.length > 0)
@@ -156,13 +142,19 @@ export const useAppStore = defineStore('app', {
       this.activeCourierId = courierId
     },
 
-    addCourier(name = '') {
+    async refreshPackageAllocation() {
+      this.resetRoutingStateOnly()
+      if (this.canCalculate) await this.calculateRoutes(false)
+    },
+
+    async addCourier(name = '') {
+      if (this.isRouteStarted || this.isCalculating) return
       if (this.couriers.length >= 10) {
         alert('Maksimal 10 kurir diperbolehkan.')
         return
       }
       const idx = this.couriers.length
-      const id = `c${Date.now().toString().slice(-4)}`
+      const id = `c${Date.now()}-${this.couriers.length + 1}`
       const newCourier = {
         id,
         name: name || `Kurir ${String.fromCharCode(65 + idx)}`,
@@ -171,18 +163,19 @@ export const useAppStore = defineStore('app', {
       }
       this.couriers.push(newCourier)
       this.activeCourierId = id
+      this.clickMode = 'ref_point'
+      await this.refreshPackageAllocation()
     },
 
-    removeCourier(courierId) {
-      if (this.isRouteStarted) return
+    async removeCourier(courierId) {
+      if (this.isRouteStarted || this.isCalculating) return
       this.couriers = this.couriers.filter(c => c.id !== courierId)
-      if (this.activeCourierId === courierId && this.couriers.length > 0) {
-        this.activeCourierId = this.couriers[0].id
-      }
+      if (this.activeCourierId === courierId) this.activeCourierId = this.couriers[0]?.id || null
+      await this.refreshPackageAllocation()
     },
 
-    addRefPoint(courierId, lat, lng, name = '') {
-      if (this.isRouteStarted) return
+    async addRefPoint(courierId, lat, lng, name = '') {
+      if (this.isRouteStarted || this.isCalculating) return
       const courier = this.couriers.find(c => c.id === courierId)
       if (!courier) return
       const count = courier.ref_points.length + 1
@@ -192,20 +185,29 @@ export const useAppStore = defineStore('app', {
         lat: Number(lat.toFixed(5)),
         lng: Number(lng.toFixed(5))
       })
+      await this.refreshPackageAllocation()
     },
 
-    removeRefPoint(courierId, refPointId) {
-      if (this.isRouteStarted) return
+    async removeRefPoint(courierId, refPointId) {
+      if (this.isRouteStarted || this.isCalculating) return
       const courier = this.couriers.find(c => c.id === courierId)
       if (!courier) return
       courier.ref_points = courier.ref_points.filter(rp => rp.id !== refPointId)
+      await this.refreshPackageAllocation()
     },
 
     addPackage(lat, lng, name = '') {
-      if (this.isRouteStarted) return
+      if (this.isRouteStarted || this.isCalculating) return false
+      if (!this.canStartPackageInput) {
+        this.errorMessage = 'Tambahkan kurir dan minimal satu titik acuan untuk setiap kurir sebelum menyebar paket.'
+        this.bottomDrawerTab = 'couriers'
+        this.isBottomDrawerOpen = true
+        this.clickMode = 'ref_point'
+        return false
+      }
       if (this.packages.length >= 50) {
         alert('Maksimal 50 paket. Titik ke-51 ditolak.')
-        return
+        return false
       }
       const num = this.packages.length + 1
       const id = `P${String(num).padStart(2, '0')}`
@@ -217,23 +219,29 @@ export const useAppStore = defineStore('app', {
         courier_id: null,
         order: null
       })
+      this.resetRoutingStateOnly()
+      return true
     },
 
-    removePackage(pkgId) {
-      if (this.isRouteStarted) return
+    async removePackage(pkgId) {
+      if (this.isRouteStarted || this.isCalculating) return
       this.packages = this.packages.filter(p => p.id !== pkgId)
+      this.resetRoutingStateOnly()
+      if (this.packages.length > 0) await this.calculateRoutes(false)
     },
 
-    loadScenario(scenarioId) {
-      if (this.isRouteStarted) return
+    async loadScenario(scenarioId) {
+      if (this.isRouteStarted || this.isCalculating) return
+      if (!this.canStartPackageInput) {
+        this.errorMessage = 'Tambahkan kurir dan minimal satu titik acuan untuk setiap kurir sebelum memuat skenario.'
+        this.bottomDrawerTab = 'couriers'
+        return
+      }
       const sc = this.scenarios.find(s => s.id === scenarioId)
       if (!sc) return
-      this.couriers = JSON.parse(JSON.stringify(sc.couriers))
       this.packages = JSON.parse(JSON.stringify(sc.packages))
-      if (this.couriers.length > 0) {
-        this.activeCourierId = this.couriers[0].id
-      }
       this.resetRoutingStateOnly()
+      await this.calculateRoutes(false)
     },
 
     resetRoutingStateOnly() {
@@ -251,21 +259,26 @@ export const useAppStore = defineStore('app', {
     },
 
     resetSession() {
+      if (this.isCalculating) return
       this.isRouteStarted = false
       this.isCalculating = false
+      this.isBottomDrawerOpen = true
+      this.bottomDrawerTab = 'packages'
       this.packages = []
+      this.couriers = []
+      this.activeCourierId = null
+      this.clickMode = 'package'
+      this.errorMessage = ''
+      this.warningMessage = ''
       this.allocations = {}
       this.knnSteps = []
       this.knnRebalanceLogs = []
       this.courierStates = {}
       this.stepHistory = []
       this.comparisonData = null
-      this.couriers.forEach(c => {
-        c.ref_points = []
-      })
     },
 
-    async calculateRoutes() {
+    async calculateRoutes(startSimulation = true) {
       if (!this.canCalculate) return
       this.isCalculating = true
       this.errorMessage = ''
@@ -375,8 +388,8 @@ export const useAppStore = defineStore('app', {
         }
 
         this.courierStates = newCourierStates
-        this.isRouteStarted = true
-        this.isBottomDrawerOpen = false // Automatically collapse drawer so map & route are clear
+        this.isRouteStarted = startSimulation
+        if (startSimulation) this.isBottomDrawerOpen = false
         this.selectedCourierForAco = this.couriers.find(c => (this.allocations[c.id] || []).length > 0)?.id || this.couriers[0].id
       } catch (err) {
         console.error('Error during calculateRoutes:', err)
@@ -519,4 +532,3 @@ export const useAppStore = defineStore('app', {
     }
   }
 })
-

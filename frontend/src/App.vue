@@ -27,6 +27,7 @@
 
     <!-- Bottom Input & Controls Drawer -->
     <DataDrawer />
+
   </div>
 </template>
 
@@ -41,8 +42,5 @@ const store = useAppStore()
 
 onMounted(async () => {
   await store.init()
-  // Load scenario 10 by default so the map has ready sample points
-  store.loadScenario('scenario-10')
 })
 </script>
-

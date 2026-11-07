@@ -50,17 +50,17 @@
 
         <!-- Action: Hitung Rute -->
         <button 
-          v-if="!store.isRouteStarted"
+          v-if="store.canCalculate && !store.isRouteStarted"
           @click="store.calculateRoutes()"
           :disabled="!store.canCalculate"
           class="bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold px-5 py-2 rounded-xl text-xs shadow-lg transition-all flex items-center space-x-2"
         >
-          <span>{{ store.isCalculating ? 'Menghitung...' : 'Hitung Rute' }}</span>
+          <span>{{ store.isCalculating ? 'Menghitung...' : 'Mulai Simulasi' }}</span>
           <span v-if="!store.isCalculating">🚀</span>
         </button>
 
         <!-- Action: Step Execution (Lanjut) -->
-        <div v-else class="flex items-center space-x-2">
+        <div v-else-if="store.isRouteStarted" class="flex items-center space-x-2">
           <!-- Advance Specific Courier or All -->
           <button 
             @click="store.advanceAllCouriers()"
@@ -95,6 +95,7 @@
         <!-- Action: Reset -->
         <button 
           @click="store.resetSession()"
+          :disabled="store.isCalculating"
           class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold px-3 py-2 rounded-xl text-xs border border-slate-700 transition-all"
           title="Reset Sesi"
         >
@@ -103,12 +104,11 @@
       </div>
     </div>
 
-    <!-- Drawer Body Tabs & Content (Shown when lifted) -->
     <div v-show="store.isBottomDrawerOpen" class="flex-1 flex flex-col overflow-hidden bg-slate-50">
       <!-- Tabs Navigation -->
       <div class="flex border-b border-slate-200 bg-white px-6">
         <button 
-          @click="store.bottomDrawerTab = 'packages'"
+          @click="store.bottomDrawerTab = 'packages'; store.clickMode = 'package'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
           :class="store.bottomDrawerTab === 'packages' ? 'border-red-600 text-red-600 bg-red-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
@@ -117,7 +117,7 @@
         </button>
 
         <button 
-          @click="store.bottomDrawerTab = 'couriers'"
+          @click="store.bottomDrawerTab = 'couriers'; store.clickMode = 'ref_point'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
           :class="store.bottomDrawerTab === 'couriers' ? 'border-red-600 text-red-600 bg-red-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
@@ -126,7 +126,7 @@
         </button>
 
         <button 
-          @click="store.bottomDrawerTab = 'params'"
+          @click="store.bottomDrawerTab = 'params'; store.clickMode = 'package'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
           :class="store.bottomDrawerTab === 'params' ? 'border-red-600 text-red-600 bg-red-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
@@ -134,7 +134,7 @@
         </button>
 
         <button 
-          @click="store.bottomDrawerTab = 'history'"
+          @click="store.bottomDrawerTab = 'history'; store.clickMode = 'package'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
           :class="store.bottomDrawerTab === 'history' ? 'border-red-600 text-red-600 bg-red-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
@@ -155,20 +155,18 @@
             <!-- Mode Toggle -->
             <div class="flex items-center space-x-2">
               <span class="text-xs font-bold text-slate-700">Mode Klik Peta:</span>
-              <button 
+              <button
                 @click="store.clickMode = 'package'"
+                :disabled="!store.canStartPackageInput"
                 class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
                 :class="store.clickMode === 'package' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
               >
                 📦 Tambah Paket
               </button>
-              <button 
-                @click="store.clickMode = 'ref_point'"
-                class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
-                :class="store.clickMode === 'ref_point' ? 'bg-amber-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-              >
-                  Tambah Titik Acuan
-              </button>
+              <span v-if="!store.canStartPackageInput" class="text-xs text-amber-700">
+                Tambahkan kurir dan titik acuan melalui tab
+                <button class="font-bold underline" @click="store.bottomDrawerTab = 'couriers'; store.clickMode = 'ref_point'">Kelola Kurir</button>.
+              </span>
             </div>
 
             <!-- Scenario Preset Loader (FR-18) -->
@@ -178,15 +176,15 @@
                 v-for="sc in store.scenarios" 
                 :key="sc.id"
                 @click="store.loadScenario(sc.id)"
-                :disabled="store.isRouteStarted"
+                :disabled="!store.canStartPackageInput || store.isRouteStarted || store.isCalculating"
                 class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 transition-all border border-slate-200"
                 :title="sc.description"
               >
                 {{ sc.id.replace('scenario-', '') }} Paket
               </button>
               <button 
-                @click="store.resetRoutingStateOnly(); store.packages = []"
-                :disabled="store.isRouteStarted || store.packages.length === 0"
+                @click="store.packages = []; store.resetRoutingStateOnly()"
+                :disabled="store.isRouteStarted || store.isCalculating || store.packages.length === 0"
                 class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all"
               >
                 Kosongkan Paket
@@ -202,7 +200,8 @@
             </div>
 
             <div v-if="store.packages.length === 0" class="py-8 text-center text-xs text-slate-400">
-              Belum ada paket. Klik di peta atau pilih skenario uji di atas.
+              <template v-if="store.canStartPackageInput">Belum ada paket. Klik di peta atau pilih skenario uji di atas.</template>
+              <template v-else>Input paket terkunci sampai kurir dan titik acuan siap.</template>
             </div>
 
             <div v-else class="max-h-56 overflow-y-auto">
@@ -240,7 +239,7 @@
                     <td class="p-2.5 text-right">
                       <button 
                         @click="store.removePackage(pkg.id)"
-                        :disabled="store.isRouteStarted"
+                        :disabled="store.isRouteStarted || store.isCalculating"
                         class="text-red-500 hover:text-red-700 font-bold disabled:opacity-30"
                         title="Hapus Titik"
                       >
@@ -257,14 +256,18 @@
         <!-- =================== TAB 2: COURIERS =================== -->
         <div v-else-if="store.bottomDrawerTab === 'couriers'" class="space-y-4">
           <div class="flex items-center justify-between">
-            <span class="text-xs text-slate-500">Maksimal 10 kurir. Tiap kurir wajib memiliki minimal 1 titik acuan (FR-03).</span>
+            <span class="text-xs text-slate-500">Tambahkan kurir, pilih kurir, lalu klik peta untuk membuat titik acuan. Maksimal 10 kurir.</span>
             <button 
               @click="store.addCourier()"
-              :disabled="store.couriers.length >= 10 || store.isRouteStarted"
+              :disabled="store.couriers.length >= 10 || store.isRouteStarted || store.isCalculating"
               class="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow"
             >
               + Tambah Kurir Baru
             </button>
+          </div>
+
+          <div v-if="store.couriers.length === 0" class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
+            Belum ada kurir. Tambahkan kurir, pilih kurir tersebut, lalu klik peta untuk menetapkan titik acuannya.
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -279,13 +282,13 @@
                   <input 
                     type="color" 
                     v-model="c.color" 
-                    :disabled="store.isRouteStarted"
+                    :disabled="store.isRouteStarted || store.isCalculating"
                     class="w-6 h-6 rounded border-0 cursor-pointer" 
                   />
                   <input 
                     type="text" 
                     v-model="c.name" 
-                    :disabled="store.isRouteStarted"
+                    :disabled="store.isRouteStarted || store.isCalculating"
                     class="text-xs font-bold text-slate-800 border-b border-transparent focus:border-slate-300 outline-none px-1"
                   />
                 </div>
@@ -327,7 +330,7 @@
               <!-- Set Active Button -->
               <button 
                 @click="store.activeCourierId = c.id; store.clickMode = 'ref_point'"
-                :disabled="store.isRouteStarted"
+                :disabled="store.isRouteStarted || store.isCalculating"
                 class="mt-3 w-full py-1.5 rounded-xl text-xs font-bold transition-all border"
                 :class="store.activeCourierId === c.id 
                   ? 'bg-amber-500 text-white border-amber-600 shadow' 
@@ -528,4 +531,3 @@ function resetParamsToDefault() {
   store.acoParams.iterations = 100
 }
 </script>
-

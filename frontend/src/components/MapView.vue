@@ -12,19 +12,21 @@
         ></span>
         <span class="text-xs font-semibold text-slate-700">
           Klik Peta: 
-          <span class="text-indigo-600" v-if="store.clickMode === 'package'">Tambah Titik Paket ({{ store.packages.length }}/50)</span>
+          <span class="text-indigo-600" v-if="store.clickMode === 'package'">
+            {{ store.canStartPackageInput ? `Tambah Titik Paket (${store.packages.length}/50)` : 'Paket terkunci — atur kurir & acuan di panel bawah' }}
+          </span>
           <span class="text-amber-600" v-else>Tambah Titik Acuan ({{ store.activeCourier?.name || 'Pilih Kurir' }})</span>
         </span>
       </div>
       <div class="h-4 w-px bg-slate-300"></div>
       <span class="text-[11px] text-slate-500">
-        {{ store.isRouteStarted ? '🔒 Rute aktif (titik terkunci)' : 'Klik di peta wilayah Samarinda' }}
+        {{ store.isCalculating ? 'KNN dan ACO sedang dihitung…' : store.isRouteStarted ? '🔒 Simulasi aktif' : 'Klik di peta wilayah Samarinda' }}
       </span>
     </div>
 
     <!-- Fallback / Notice Alert -->
     <div 
-      v-if="store.isHaversineFallback && store.isRouteStarted"
+      v-if="store.isHaversineFallback && store.knnSteps.length"
       class="absolute top-16 left-20 z-10 bg-amber-50/95 border border-amber-300 text-amber-800 px-3 py-1.5 rounded-lg shadow text-xs flex items-center space-x-2"
     >
       <span class="text-amber-500 font-bold">⚠️ Info Jarak:</span>
@@ -79,17 +81,19 @@ function initMap() {
 
   // Map Click Listener
   map.on('click', (e) => {
-    if (store.isRouteStarted) return
+    if (store.isRouteStarted || store.isCalculating) return
     const { lat, lng } = e.latlng
 
     if (store.clickMode === 'ref_point') {
       if (!store.activeCourierId) {
-        alert('Silakan pilih kurir terlebih dahulu.')
+        store.errorMessage = 'Tambahkan dan pilih kurir di tab Kelola Kurir sebelum menambahkan titik acuan.'
+        store.bottomDrawerTab = 'couriers'
+        store.isBottomDrawerOpen = true
         return
       }
       store.addRefPoint(store.activeCourierId, lat, lng)
-    } else {
-      store.addPackage(lat, lng)
+    } else if (store.clickMode === 'package') {
+      if (store.addPackage(lat, lng)) store.calculateRoutes(false)
     }
   })
 
@@ -172,7 +176,7 @@ function renderRefPoints() {
             <div style="color: ${courier.color}; font-weight: bold;">${rp.name || 'Titik Acuan'}</div>
             <div style="font-size: 11px; color: #64748b;">Milik: ${courier.name}</div>
             <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">${rp.lat.toFixed(5)}, ${rp.lng.toFixed(5)}</div>
-            ${!store.isRouteStarted ? `
+            ${!store.isRouteStarted && !store.isCalculating ? `
               <button onclick="window.__removeRefPoint('${courier.id}', '${rp.id}')" style="margin-top: 6px; background: #fee2e2; color: #dc2626; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
                 Hapus Titik Acuan
               </button>
@@ -302,4 +306,3 @@ window.__removeRefPoint = (courierId, rpId) => {
   store.removeRefPoint(courierId, rpId)
 }
 </script>
-
