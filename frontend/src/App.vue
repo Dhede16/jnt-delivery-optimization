@@ -46,8 +46,8 @@ async function advanceCourier(courierId) {
   if (isAnimating.value) return
   isAnimating.value = true
   try {
-    await mapView.value.animateCourierStep(courierId)
-    await store.advanceCourierStep(courierId)
+    const traveledCoordinates = await mapView.value.animateCourierStep(courierId)
+    await store.advanceCourierStep(courierId, traveledCoordinates)
   } finally {
     isAnimating.value = false
   }
@@ -60,8 +60,10 @@ async function advanceAllCouriers() {
     const activeCourierIds = Object.entries(store.courierStates)
       .filter(([, state]) => !state.isFinished && state.remainingPackageIds.length > 0)
       .map(([courierId]) => courierId)
-    await Promise.all(activeCourierIds.map(courierId => mapView.value.animateCourierStep(courierId)))
-    await store.advanceAllCouriers()
+    const traveledCoordinates = await Promise.all(activeCourierIds.map(
+      async courierId => [courierId, await mapView.value.animateCourierStep(courierId)]
+    ))
+    await store.advanceAllCouriers(Object.fromEntries(traveledCoordinates))
   } finally {
     isAnimating.value = false
   }

@@ -400,7 +400,7 @@ export const useAppStore = defineStore('app', {
       }
     },
 
-    async advanceCourierStep(courierId) {
+    async advanceCourierStep(courierId, traveledCoordinates = []) {
       const cs = this.courierStates[courierId]
       const courier = this.couriers.find(c => c.id === courierId)
       if (!cs || cs.isFinished || cs.remainingPackageIds.length === 0) return
@@ -424,7 +424,7 @@ export const useAppStore = defineStore('app', {
 
       cs.traveledM += segDistM
       cs.currentPos = { lat: nextPkg.lat, lng: nextPkg.lng }
-      cs.visitedCoordinates.push([nextPkg.lat, nextPkg.lng])
+      cs.visitedCoordinates.push(...traveledCoordinates.slice(1))
 
       // Record History
       const stepNumber = this.stepHistory.filter(h => h.courierId === courierId).length + 1
@@ -484,13 +484,13 @@ export const useAppStore = defineStore('app', {
       }
     },
 
-    async advanceAllCouriers() {
+    async advanceAllCouriers(traveledCoordinates = {}) {
       const activeCourierIds = Object.keys(this.courierStates).filter(cid => {
         const cs = this.courierStates[cid]
         return cs && !cs.isFinished && cs.remainingPackageIds.length > 0
       })
       for (const cid of activeCourierIds) {
-        await this.advanceCourierStep(cid)
+        await this.advanceCourierStep(cid, traveledCoordinates[cid])
       }
     },
 

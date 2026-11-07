@@ -60,6 +60,7 @@ let packagesLayer = null
 let routePolylinesLayer = null
 let courierPositionLayer = null
 const courierMarkers = new Map()
+const plannedRouteLines = new Map()
 
 onMounted(() => {
   initMap()
@@ -256,13 +257,14 @@ function renderPackages() {
 
 function renderRoutes() {
   routePolylinesLayer.clearLayers()
+  plannedRouteLines.clear()
   const courierMap = new Map(store.couriers.map(c => [c.id, c]))
 
   for (const [courierId, state] of Object.entries(store.courierStates)) {
     const courier = courierMap.get(courierId)
     const color = courier ? courier.color : '#3B82F6'
 
-    // 1. Visited Path (Gray dotted line)
+    // 1. Road already traveled
     if (state.visitedCoordinates && state.visitedCoordinates.length > 1) {
       L.polyline(state.visitedCoordinates, {
         color: '#94A3B8',
@@ -272,16 +274,17 @@ function renderRoutes() {
       }).addTo(routePolylinesLayer)
     }
 
-    // 2. Active Remaining Geometry
+    // 2. Road still to travel
     if (state.geometry && state.geometry.coordinates) {
       // GeoJSON coordinates are [lon, lat] -> convert to [lat, lon] for Leaflet
       const latlngs = state.geometry.coordinates.map(coord => [coord[1], coord[0]])
-      L.polyline(latlngs, {
-        color: color,
+      const line = L.polyline(latlngs, {
+        color,
         weight: 4.5,
         opacity: 0.9,
         lineJoin: 'round'
       }).addTo(routePolylinesLayer)
+      plannedRouteLines.set(courierId, line)
     }
   }
 }
@@ -344,17 +347,20 @@ function animateCourierStep(courierId) {
   }, { index: fromIndex, distance: Infinity }).index
   const startIndex = nearestIndex(state.currentPos)
   const endIndex = nearestIndex(destination, startIndex)
-  const path = endIndex > startIndex
-    ? roadCoordinates.slice(startIndex, endIndex + 1).map(([lng, lat]) => L.latLng(lat, lng))
-    : []
-  if (path.length < 2) {
-    path.splice(0, path.length, L.latLng(state.currentPos.lat, state.currentPos.lng), L.latLng(destination.lat, destination.lng))
-  }
+  const path = roadCoordinates.slice(startIndex, endIndex + 1).map(([lng, lat]) => L.latLng(lat, lng))
+  if (path.length < 2) return Promise.resolve([])
 
   const lengths = [0]
   for (let i = 1; i < path.length; i++) lengths.push(lengths[i - 1] + path[i - 1].distanceTo(path[i]))
   const totalDistance = lengths[lengths.length - 1]
   const duration = Math.max(500, Math.min(10000, totalDistance / (350 * store.animationSpeed) * 1000))
+  const traveledLine = L.polyline([], {
+    color: '#94A3B8',
+    weight: 3.5,
+    dashArray: '6, 6',
+    opacity: 0.8
+  }).addTo(routePolylinesLayer)
+  const plannedLine = plannedRouteLines.get(courierId)
 
   return new Promise(resolve => {
     let startedAt
@@ -368,14 +374,22 @@ function animateCourierStep(courierId) {
       const segmentProgress = segmentLength ? (distance - lengths[segment - 1]) / segmentLength : 1
       const from = path[segment - 1]
       const to = path[segment]
-      marker.setLatLng([
+      const currentPosition = L.latLng(
         from.lat + (to.lat - from.lat) * segmentProgress,
         from.lng + (to.lng - from.lng) * segmentProgress
-      ])
+      )
+      marker.setLatLng(currentPosition)
+      traveledLine.setLatLngs([...path.slice(0, segment), currentPosition])
+      if (plannedLine) {
+        plannedLine.setLatLngs([
+          currentPosition,
+          ...roadCoordinates.slice(startIndex + segment).map(([lng, lat]) => [lat, lng])
+        ])
+      }
       if (progress < 1) requestAnimationFrame(move)
       else {
         marker.setLatLng([destination.lat, destination.lng])
-        resolve()
+        resolve(path.map(point => [point.lat, point.lng]))
       }
     }
     requestAnimationFrame(move)
