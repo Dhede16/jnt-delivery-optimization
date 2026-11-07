@@ -29,7 +29,7 @@ export const useAppStore = defineStore('app', {
     
     // Parameters
     knnParams: {
-      k: 3,
+      k: 1,
       balanceLoad: false
     },
     acoParams: {

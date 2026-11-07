@@ -369,13 +369,13 @@
                   :disabled="store.isRouteStarted"
                   class="w-full accent-indigo-600 cursor-pointer"
                 />
-                <p class="text-[11px] text-slate-400 mt-1">Nilai bawaan: 3. Jika k melebihi jumlah titik acuan, k disesuaikan otomatis.</p>
+                <p class="text-[11px] text-slate-400 mt-1">Nilai bawaan: 1.</p>
               </div>
 
               <!-- Balance Load Toggle (FR-16) -->
               <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <div>
-                  <span class="text-xs font-bold text-slate-800 block">Opsi Seimbangkan Beban (FR-16)</span>
+                  <span class="text-xs font-bold text-slate-800 block">Opsi Seimbangkan Beban </span>
                   <span class="text-[11px] text-slate-500">Membatasi kapasitas kurir maksimal ceil(N / M).</span>
                 </div>
                 <input 
@@ -533,7 +533,7 @@ function getCourierColor(courierId) {
 }
 
 function resetParamsToDefault() {
-  store.knnParams.k = 3
+  store.knnParams.k = 1
   store.knnParams.balanceLoad = false
   store.acoParams.alpha = 1.0
   store.acoParams.beta = 3.0

@@ -63,7 +63,7 @@ def get_config() -> Dict[str, Any]:
             "min_ref_points_per_courier": 1
         },
         "defaults": {
-            "knn_k": 3,
+            "knn_k": 1,
             "balance_load": False,
             "aco_alpha": 1.0,
             "aco_beta": 3.0,
