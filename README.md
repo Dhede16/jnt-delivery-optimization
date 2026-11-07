@@ -8,6 +8,11 @@ Aplikasi web sistem pendukung keputusan logistik untuk mengalokasikan paket J&T 
 
 Pastikan Python 3.10+ telah terpasang di komputer Anda.
 
+### 0. Instal Dependensi Python
+```bash
+python -m pip install -r requirements.txt
+```
+
 ### 1. Jalankan Langsung (Mode Terpadu)
 ```bash
 python run.py
@@ -46,7 +51,7 @@ Akses Vite di: **http://localhost:5173**
 2. **Panel Kiri (Eksplorasi & Tahapan Algoritma)**:
    - Posisi di sebelah kiri layar.
    - Dapat **melebar ke kanan-tengah menutupi 50% layar** ketika dibuka (*expand*).
-   - **Tahap 1 (KNN)**: Menampilkan rumus Haversine, tabel jarak ke seluruh titik acuan, $k$ tetangga terdekat, perhitungan suara (*voting*), *tie-breaking* pembobotan $1/d$, serta log penyeimbangan beban (*load balancing*).
+   - **Tahap 1 (KNN)**: Menggunakan scikit-learn dan jarak jalan kendaraan dari OSRM untuk mencari $k$ titik acuan terdekat, menampilkan perhitungan suara (*voting*), *tie-breaking* pembobotan $1/d$, serta log penyeimbangan beban (*load balancing*). Alokasi gagal jika OSRM tidak tersedia atau rute jalan tidak ditemukan.
    - **Tahap 2 (ACO)**: Menampilkan rumus probabilitas transisi $P_{ij}$ dan pembaruan feromon $\tau_{ij}$, kurva konvergensi jarak per iterasi, log *milestone* iterasi semut, serta urutan perhentian.
    - **Tahap 3 (Evaluasi Akademik)**: Membandingkan alokasi (KNN vs K-Means vs Acak) dan rute (ACO vs Nearest Neighbor vs Urutan Klik).
 
@@ -88,4 +93,3 @@ jnt-aco-knn/
 ├── pytest.ini             # Konfigurasi pengujian
 └── README.md
 ```
-

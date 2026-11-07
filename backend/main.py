@@ -11,7 +11,12 @@ from fastapi.responses import FileResponse
 from aco import solve_open_tsp_aco
 from comparison import run_comparisons
 from knn import run_knn_allocation
-from osrm import get_distance_matrix, get_route_geometry
+from osrm import (
+    RoadDistanceError,
+    get_distance_matrix,
+    get_knn_road_distance_matrices,
+    get_route_geometry,
+)
 from schemas import (
     AllocateRequest,
     AllocateResponse,
@@ -87,8 +92,8 @@ async def post_matrix(req: MatrixRequest):
 
 
 @app.post("/api/allocate", response_model=AllocateResponse)
-def post_allocate(req: AllocateRequest):
-    """Allocates packages to couriers using KNN with detailed calculation logs."""
+async def post_allocate(req: AllocateRequest):
+    """Allocates packages with scikit-learn KNN using OSRM road distances."""
     if len(req.couriers) == 0:
         raise HTTPException(status_code=400, detail="Minimal 1 kurir harus ditambahkan.")
     if len(req.couriers) > 10:
@@ -100,7 +105,12 @@ def post_allocate(req: AllocateRequest):
             raise HTTPException(status_code=400, detail=f"Kurir '{c.name}' belum memiliki titik acuan.")
 
     try:
-        return run_knn_allocation(req)
+        reference_distances, package_distances = await get_knn_road_distance_matrices(
+            req.couriers, req.packages
+        )
+        return run_knn_allocation(req, reference_distances, package_distances)
+    except RoadDistanceError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -126,10 +136,15 @@ async def post_geometry(req: GeometryRequest):
 
 
 @app.post("/api/compare", response_model=CompareResponse)
-def post_compare(req: CompareRequest):
-    """Performs academic comparison of KNN vs K-Means vs Random and ACO vs NN vs Click order."""
+async def post_compare(req: CompareRequest):
+    """Compares allocation and routing methods using OSRM road distances for KNN."""
     try:
-        return run_comparisons(req)
+        reference_distances, package_distances = await get_knn_road_distance_matrices(
+            req.couriers, req.packages
+        )
+        return run_comparisons(req, reference_distances, package_distances)
+    except RoadDistanceError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -145,4 +160,3 @@ if FRONTEND_DIST.exists():
         if file_path.is_file():
             return FileResponse(file_path)
         return FileResponse(FRONTEND_DIST / "index.html")
-

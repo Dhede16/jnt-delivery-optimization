@@ -137,7 +137,7 @@
               <span>Rumus & Prinsip Alokasi K-Nearest Neighbors (KNN)</span>
             </div>
             <p class="text-indigo-800 leading-relaxed">
-              Titik acuan kurir berfungsi sebagai <strong>data latih</strong> terlabel. Jarak antara paket dan setiap titik acuan dihitung dengan formula <strong>Haversine</strong>. Kurir pemenang ditentukan berdasarkan suara terbanyak dari <strong>k = {{ store.effectiveK }}</strong> tetangga terdekat. Jika terjadi seri, pemenang ditentukan berdasarkan akumulasi bobot jarak terbalik:
+              Titik acuan kurir berfungsi sebagai <strong>data latih</strong> terlabel. Jarak paket ke setiap titik acuan dihitung berdasarkan jaringan jalan kendaraan dari <strong>OSRM</strong>, lalu scikit-learn mencari <strong>k = {{ store.effectiveK }}</strong> tetangga terdekat. Kurir pemenang ditentukan berdasarkan suara terbanyak. Jika terjadi seri, pemenang ditentukan berdasarkan akumulasi bobot jarak terbalik:
             </p>
             <div class="bg-white/80 border border-indigo-200 rounded-lg p-2.5 font-mono text-[11px] text-indigo-950 flex justify-between items-center">
               <span>w_i = 1 / (Jarak_km + 10^-7)</span>
@@ -212,7 +212,7 @@
                         <th class="p-2.5">Peringkat</th>
                         <th class="p-2.5">Titik Acuan</th>
                         <th class="p-2.5">Kurir Pemilik</th>
-                        <th class="p-2.5">Jarak Haversine</th>
+                        <th class="p-2.5">Jarak Jalan (OSRM)</th>
                         <th class="p-2.5">Bobot (1/d)</th>
                       </tr>
                     </thead>
@@ -563,4 +563,3 @@ function getConvergencePoints(data) {
   }).join(' ')
 }
 </script>
-

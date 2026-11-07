@@ -1,5 +1,7 @@
 import math
 from typing import Dict, List, Tuple
+import numpy as np
+from sklearn.neighbors import KNeighborsClassifier
 from schemas import AllocateRequest, AllocateResponse, KNNStepDetail, NeighborVote
 
 
@@ -16,7 +18,11 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return R * c
 
 
-def run_knn_allocation(req: AllocateRequest) -> AllocateResponse:
+def run_knn_allocation(
+    req: AllocateRequest,
+    reference_distances_m: List[List[float]],
+    package_distances_m: List[List[float]]
+) -> AllocateResponse:
     # 1. Gather all training reference points
     training_points: List[Tuple[str, str, float, float]] = []  # (ref_id, courier_id, lat, lng)
     for courier in req.couriers:
@@ -35,6 +41,31 @@ def run_knn_allocation(req: AllocateRequest) -> AllocateResponse:
     if effective_k < 1:
         effective_k = 1
 
+    if len(reference_distances_m) != total_ref_points or any(
+        len(row) != total_ref_points for row in reference_distances_m
+    ):
+        raise ValueError("Matriks jarak antar titik acuan tidak valid.")
+    if len(package_distances_m) != len(req.packages) or any(
+        len(row) != total_ref_points for row in package_distances_m
+    ):
+        raise ValueError("Matriks jarak paket ke titik acuan tidak valid.")
+
+    classifier = KNeighborsClassifier(
+        n_neighbors=effective_k,
+        metric="precomputed"
+    ).fit(np.asarray(reference_distances_m), [p[1] for p in training_points])
+    package_distances = np.asarray(package_distances_m)
+    if req.packages:
+        predicted_couriers = classifier.predict(package_distances)
+        neighbor_distances, neighbor_indices = classifier.kneighbors(
+            package_distances,
+            n_neighbors=total_ref_points
+        )
+    else:
+        predicted_couriers = []
+        neighbor_distances = np.empty((0, total_ref_points))
+        neighbor_indices = np.empty((0, total_ref_points), dtype=int)
+
     steps: List[KNNStepDetail] = []
     initial_allocations: Dict[str, List[str]] = {c.id: [] for c in req.couriers}
     package_courier_rankings: Dict[str, List[str]] = {}
@@ -43,19 +74,20 @@ def run_knn_allocation(req: AllocateRequest) -> AllocateResponse:
     eps = 1e-7
 
     # 2. Allocate each package with KNN
-    for pkg in req.packages:
+    for package_index, pkg in enumerate(req.packages):
         distances = []
-        for ref_id, courier_id, lat, lng in training_points:
-            dist = haversine_km(pkg.lat, pkg.lng, lat, lng)
+        for distance_m, reference_index in zip(
+            neighbor_distances[package_index],
+            neighbor_indices[package_index]
+        ):
+            ref_id, courier_id, _, _ = training_points[reference_index]
+            dist_km = distance_m / 1000.0
             distances.append({
                 "ref_point_id": ref_id,
                 "courier_id": courier_id,
-                "distance_km": round(dist, 4),
-                "weight": round(1.0 / (dist + eps), 4)
+                "distance_km": round(dist_km, 4),
+                "weight": round(1.0 / (dist_km + eps), 4)
             })
-
-        # Sort by distance ascending
-        distances.sort(key=lambda x: x["distance_km"])
         top_k_items = distances[:effective_k]
 
         vote_counts: Dict[str, int] = {}
@@ -71,7 +103,7 @@ def run_knn_allocation(req: AllocateRequest) -> AllocateResponse:
 
         tie_broken = False
         if len(candidate_winners) == 1:
-            winner = candidate_winners[0]
+            winner = predicted_couriers[package_index]
         else:
             # Tie breaking by highest inverse-distance weight
             tie_broken = True
@@ -182,4 +214,3 @@ def run_knn_allocation(req: AllocateRequest) -> AllocateResponse:
         effective_k=effective_k,
         warning=warning_msg
     )
-

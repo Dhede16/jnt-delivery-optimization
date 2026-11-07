@@ -1,7 +1,8 @@
 from fastapi.testclient import TestClient
-from main import app
+import main
+from osrm import RoadDistanceError
 
-client = TestClient(app)
+client = TestClient(main.app)
 
 
 def test_get_config():
@@ -20,9 +21,20 @@ def test_get_scenarios():
     assert len(data["scenarios"]) >= 4
 
 
-def test_allocate_and_optimize_endpoints():
+def test_allocate_and_optimize_endpoints(monkeypatch):
     scenario_res = client.get("/api/scenarios")
     s10 = scenario_res.json()["scenarios"][0]
+
+    async def road_distances(couriers, packages):
+        reference_count = sum(len(c.ref_points) for c in couriers)
+        reference_matrix = [
+            [0.0 if i == j else 1000.0 for j in range(reference_count)]
+            for i in range(reference_count)
+        ]
+        package_matrix = [[500.0] * reference_count for _ in packages]
+        return reference_matrix, package_matrix
+
+    monkeypatch.setattr(main, "get_knn_road_distance_matrices", road_distances)
 
     # Test allocate
     alloc_req = {
@@ -60,3 +72,21 @@ def test_allocate_and_optimize_endpoints():
     assert len(opt_data["tour"]) == len(c1_pkgs)
     assert opt_data["total_distance_m"] > 0
 
+
+def test_allocate_returns_service_unavailable_when_osrm_fails(monkeypatch):
+    async def unavailable(couriers, packages):
+        raise RoadDistanceError("OSRM tidak tersedia.")
+
+    monkeypatch.setattr(main, "get_knn_road_distance_matrices", unavailable)
+    response = client.post("/api/allocate", json={
+        "couriers": [{
+            "id": "c1",
+            "name": "Kurir 1",
+            "color": "#3B82F6",
+            "ref_points": [{"id": "r1", "lat": 0.0, "lng": 0.0}]
+        }],
+        "packages": [{"id": "p1", "lat": 0.1, "lng": 0.1}]
+    })
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "OSRM tidak tersedia."

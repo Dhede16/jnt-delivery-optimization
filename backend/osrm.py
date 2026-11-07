@@ -1,12 +1,97 @@
 import logging
+import math
 from typing import Any, Dict, List, Tuple
 import httpx
 from knn import haversine_km
-from schemas import MatrixRequest, MatrixResponse, Point
+from schemas import Courier, MatrixRequest, MatrixResponse, Point
 
 logger = logging.getLogger(__name__)
 
 OSRM_BASE_URL = "https://router.project-osrm.org"
+OSRM_TABLE_BATCH_SIZE = 50
+
+
+class RoadDistanceError(RuntimeError):
+    pass
+
+
+async def get_knn_road_distance_matrices(
+    couriers: List[Courier],
+    packages: List[Point]
+) -> Tuple[List[List[float]], List[List[float]]]:
+    reference_points = [point for courier in couriers for point in courier.ref_points]
+    if not reference_points:
+        raise RoadDistanceError("Tidak ada titik acuan untuk menghitung jarak jalan.")
+
+    sources = [(point, "reference", i) for i, point in enumerate(reference_points)]
+    sources.extend((point, "package", i) for i, point in enumerate(packages))
+    reference_distances = [[0.0] * len(reference_points) for _ in reference_points]
+    package_distances = [[0.0] * len(reference_points) for _ in packages]
+
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        for source_start in range(0, len(sources), OSRM_TABLE_BATCH_SIZE):
+            source_batch = sources[source_start:source_start + OSRM_TABLE_BATCH_SIZE]
+            for destination_start in range(0, len(reference_points), OSRM_TABLE_BATCH_SIZE):
+                destination_batch = reference_points[
+                    destination_start:destination_start + OSRM_TABLE_BATCH_SIZE
+                ]
+                coordinates = [point for point, _, _ in source_batch] + destination_batch
+                coords_str = ";".join(
+                    f"{point.lng:.6f},{point.lat:.6f}" for point in coordinates
+                )
+                source_indices = ";".join(str(i) for i in range(len(source_batch)))
+                destination_indices = ";".join(
+                    str(len(source_batch) + i) for i in range(len(destination_batch))
+                )
+                url = (
+                    f"{OSRM_BASE_URL}/table/v1/driving/{coords_str}"
+                    f"?annotations=distance&sources={source_indices}"
+                    f"&destinations={destination_indices}"
+                )
+
+                try:
+                    response = await client.get(url)
+                    response.raise_for_status()
+                    data = response.json()
+                except (httpx.HTTPError, ValueError) as exc:
+                    raise RoadDistanceError(
+                        "Gagal memperoleh jarak jalan dari OSRM. Coba lagi saat layanan tersedia."
+                    ) from exc
+
+                if not isinstance(data, dict):
+                    raise RoadDistanceError("OSRM mengembalikan respons yang tidak valid.")
+                values = data.get("distances")
+                if data.get("code") != "Ok" or not isinstance(values, list):
+                    raise RoadDistanceError(
+                        f"OSRM gagal menghitung jarak jalan: {data.get('message', data.get('code', 'respons tidak valid'))}."
+                    )
+                if len(values) != len(source_batch):
+                    raise RoadDistanceError("OSRM mengembalikan matriks jarak yang tidak lengkap.")
+
+                for source_index, row in enumerate(values):
+                    if not isinstance(row, list) or len(row) != len(destination_batch):
+                        raise RoadDistanceError("OSRM mengembalikan matriks jarak yang tidak valid.")
+                    point, source_type, result_index = source_batch[source_index]
+                    for destination_index, distance_m in enumerate(row):
+                        destination = destination_batch[destination_index]
+                        if distance_m is None:
+                            raise RoadDistanceError(
+                                f"Tidak ada rute jalan OSRM antara '{point.id}' dan '{destination.id}'."
+                            )
+                        try:
+                            distance_m = float(distance_m)
+                        except (TypeError, ValueError) as exc:
+                            raise RoadDistanceError(
+                                "OSRM mengembalikan nilai jarak yang tidak valid."
+                            ) from exc
+                        if not math.isfinite(distance_m) or distance_m < 0:
+                            raise RoadDistanceError("OSRM mengembalikan nilai jarak yang tidak valid.")
+                        if source_type == "reference":
+                            reference_distances[result_index][destination_start + destination_index] = distance_m
+                        else:
+                            package_distances[result_index][destination_start + destination_index] = distance_m
+
+    return reference_distances, package_distances
 
 
 def compute_haversine_matrix(points: List[Point]) -> Tuple[List[List[float]], List[str]]:
@@ -132,4 +217,3 @@ async def get_route_geometry(coordinates: List[List[float]]) -> Tuple[Dict[str, 
         "type": "LineString",
         "coordinates": straight_line_coords
     }, round(total_m, 2), True
-

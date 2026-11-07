@@ -14,7 +14,11 @@ from schemas import (
 )
 
 
-def run_comparisons(req: CompareRequest) -> CompareResponse:
+def run_comparisons(
+    req: CompareRequest,
+    reference_distances_m: List[List[float]],
+    package_distances_m: List[List[float]]
+) -> CompareResponse:
     # 1. Allocation comparisons: KNN vs K-Means vs Random
     # We will evaluate how each allocation performs under ACO or NN routing
     alloc_results: List[CompareMethodResult] = []
@@ -30,7 +34,7 @@ def run_comparisons(req: CompareRequest) -> CompareResponse:
         packages=req.packages,
         k=req.k,
         balance_load=req.balance_load
-    ))
+    ), reference_distances_m, package_distances_m)
     knn_allocs = knn_resp.allocations
     t_knn = (time.perf_counter() - t0) * 1000
 
@@ -192,4 +196,3 @@ def run_comparisons(req: CompareRequest) -> CompareResponse:
         allocation_comparisons=alloc_results,
         routing_comparisons=routing_results
     )
-
