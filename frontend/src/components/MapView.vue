@@ -2,6 +2,13 @@
   <div class="relative w-full h-full">
     <!-- Leaflet Map Container -->
     <div ref="mapContainer" class="w-full h-full z-0 cursor-crosshair"></div>
+    <div
+      v-if="isPackageLoading"
+      class="package-loading-cursor"
+      :style="{ left: `${cursorPosition.x}px`, top: `${cursorPosition.y}px` }"
+      role="status"
+      aria-label="Menghitung kurir dan rute paket"
+    ></div>
 
     <!-- Mode Badge & Tooltip -->
     <div class="absolute top-4 left-20 z-10 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg border border-slate-200/80 flex items-center space-x-3 pointer-events-auto">
@@ -42,6 +49,8 @@ import { useAppStore } from '../stores/appStore'
 
 const store = useAppStore()
 const mapContainer = ref(null)
+const isPackageLoading = ref(false)
+const cursorPosition = ref({ x: 0, y: 0 })
 let map = null
 
 // Layers
@@ -50,6 +59,7 @@ let refPointsLayer = null
 let packagesLayer = null
 let routePolylinesLayer = null
 let courierPositionLayer = null
+const courierMarkers = new Map()
 
 onMounted(() => {
   initMap()
@@ -93,7 +103,18 @@ function initMap() {
       }
       store.addRefPoint(store.activeCourierId, lat, lng)
     } else if (store.clickMode === 'package') {
-      if (store.addPackage(lat, lng)) store.calculateRoutes(false)
+      if (!store.addPackage(lat, lng)) return
+      cursorPosition.value = { x: e.originalEvent.clientX, y: e.originalEvent.clientY }
+      isPackageLoading.value = true
+      store.calculateRoutes(false).finally(() => {
+        isPackageLoading.value = false
+      })
+    }
+  })
+
+  map.on('mousemove', (e) => {
+    if (isPackageLoading.value) {
+      cursorPosition.value = { x: e.originalEvent.clientX, y: e.originalEvent.clientY }
     }
   })
 
@@ -266,27 +287,39 @@ function renderRoutes() {
 }
 
 function renderCourierPositions() {
-  courierPositionLayer.clearLayers()
   const courierMap = new Map(store.couriers.map(c => [c.id, c]))
+  const activeCourierIds = new Set(Object.keys(store.courierStates))
+
+  for (const [courierId, marker] of courierMarkers) {
+    if (!activeCourierIds.has(courierId)) {
+      courierPositionLayer.removeLayer(marker)
+      courierMarkers.delete(courierId)
+    }
+  }
 
   for (const [courierId, state] of Object.entries(store.courierStates)) {
     if (!state.currentPos) continue
     const courier = courierMap.get(courierId)
     const color = courier ? courier.color : '#3B82F6'
 
-    const icon = L.divIcon({
-      className: 'courier-pos-marker',
-      html: `
-        <div style="background: white; border: 3px solid ${color}; color: ${color}; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.35); font-size: 15px;">
-          🛵
-        </div>
-      `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    })
-
-    L.marker([state.currentPos.lat, state.currentPos.lng], { icon })
-      .bindPopup(`
+    let marker = courierMarkers.get(courierId)
+    if (!marker) {
+      const icon = L.divIcon({
+        className: 'courier-pos-marker',
+        html: `
+          <div style="background: white; border: 3px solid ${color}; color: ${color}; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.35); font-size: 15px;">
+            🛵
+          </div>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      })
+      marker = L.marker([state.currentPos.lat, state.currentPos.lng], { icon }).addTo(courierPositionLayer)
+      courierMarkers.set(courierId, marker)
+    } else {
+      marker.setLatLng([state.currentPos.lat, state.currentPos.lng])
+    }
+    marker.bindPopup(`
         <div style="font-size: 12px; font-weight: bold; color: ${color};">
           Posisi Saat Ini: ${courier?.name || courierId}
           <div style="font-size: 11px; font-weight: normal; color: #475569; margin-top: 3px;">
@@ -294,9 +327,62 @@ function renderCourierPositions() {
           </div>
         </div>
       `)
-      .addTo(courierPositionLayer)
   }
 }
+
+function animateCourierStep(courierId) {
+  const state = store.courierStates[courierId]
+  const marker = courierMarkers.get(courierId)
+  const packageId = state?.remainingPackageIds[0]
+  const destination = store.packages.find(pkg => pkg.id === packageId)
+  if (!state?.currentPos || !marker || !destination) return Promise.resolve()
+
+  const roadCoordinates = state.geometry?.coordinates || []
+  const nearestIndex = (point, fromIndex = 0) => roadCoordinates.slice(fromIndex).reduce((nearest, coordinate, index) => {
+    const distance = (coordinate[0] - point.lng) ** 2 + (coordinate[1] - point.lat) ** 2
+    return distance < nearest.distance ? { index: fromIndex + index, distance } : nearest
+  }, { index: fromIndex, distance: Infinity }).index
+  const startIndex = nearestIndex(state.currentPos)
+  const endIndex = nearestIndex(destination, startIndex)
+  const path = endIndex > startIndex
+    ? roadCoordinates.slice(startIndex, endIndex + 1).map(([lng, lat]) => L.latLng(lat, lng))
+    : []
+  if (path.length < 2) {
+    path.splice(0, path.length, L.latLng(state.currentPos.lat, state.currentPos.lng), L.latLng(destination.lat, destination.lng))
+  }
+
+  const lengths = [0]
+  for (let i = 1; i < path.length; i++) lengths.push(lengths[i - 1] + path[i - 1].distanceTo(path[i]))
+  const totalDistance = lengths[lengths.length - 1]
+  const duration = Math.max(500, Math.min(10000, totalDistance / (350 * store.animationSpeed) * 1000))
+
+  return new Promise(resolve => {
+    let startedAt
+    const move = (timestamp) => {
+      startedAt ??= timestamp
+      const progress = Math.min((timestamp - startedAt) / duration, 1)
+      const distance = totalDistance * progress
+      let segment = lengths.findIndex(length => length >= distance)
+      if (segment < 1) segment = 1
+      const segmentLength = lengths[segment] - lengths[segment - 1]
+      const segmentProgress = segmentLength ? (distance - lengths[segment - 1]) / segmentLength : 1
+      const from = path[segment - 1]
+      const to = path[segment]
+      marker.setLatLng([
+        from.lat + (to.lat - from.lat) * segmentProgress,
+        from.lng + (to.lng - from.lng) * segmentProgress
+      ])
+      if (progress < 1) requestAnimationFrame(move)
+      else {
+        marker.setLatLng([destination.lat, destination.lng])
+        resolve()
+      }
+    }
+    requestAnimationFrame(move)
+  })
+}
+
+defineExpose({ animateCourierStep })
 
 // Global window helpers for leaflet popup buttons
 window.__removePackage = (pkgId) => {
@@ -306,3 +392,24 @@ window.__removeRefPoint = (courierId, rpId) => {
   store.removeRefPoint(courierId, rpId)
 }
 </script>
+
+<style scoped>
+.package-loading-cursor {
+  position: fixed;
+  z-index: 1000;
+  width: 22px;
+  height: 22px;
+  margin: 10px 0 0 10px;
+  border: 3px solid #c7d2fe;
+  border-top-color: #4f46e5;
+  border-radius: 50%;
+  animation: package-loading-spin 0.7s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes package-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

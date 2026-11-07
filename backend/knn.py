@@ -5,8 +5,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from schemas import AllocateRequest, AllocateResponse, KNNStepDetail, NeighborVote
 
 
-def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Calculates geodesic distance between two points in km."""
+def real_distance_knn(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     R = 6371.0088
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     delta_phi = math.radians(lat2 - lat1)

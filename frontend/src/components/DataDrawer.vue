@@ -63,8 +63,8 @@
         <div v-else-if="store.isRouteStarted" class="flex items-center space-x-2">
           <!-- Advance Specific Courier or All -->
           <button 
-            @click="store.advanceAllCouriers()"
-            :disabled="!store.canAdvanceAny || store.isCalculating"
+            @click="$emit('advance-all')"
+            :disabled="!store.canAdvanceAny || store.isCalculating || isAnimating"
             class="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center space-x-1"
             title="Lanjut 1 langkah untuk semua kurir aktif"
           >
@@ -81,8 +81,8 @@
               <div v-for="c in store.couriers" :key="c.id" class="p-1.5 flex items-center justify-between hover:bg-slate-50 rounded-lg">
                 <span class="text-xs font-bold" :style="{ color: c.color }">{{ c.name }}</span>
                 <button 
-                  @click="store.advanceCourierStep(c.id)"
-                  :disabled="!store.courierStates[c.id] || store.courierStates[c.id].isFinished"
+                  @click="$emit('advance-courier', c.id)"
+                  :disabled="!store.courierStates[c.id] || store.courierStates[c.id].isFinished || store.isCalculating || isAnimating"
                   class="bg-slate-900 disabled:opacity-30 text-white text-[10px] px-2 py-1 rounded font-bold"
                 >
                   {{ store.courierStates[c.id]?.isFinished ? 'Selesai' : 'Lanjut' }}
@@ -90,12 +90,17 @@
               </div>
             </div>
           </div>
+          <label class="flex items-center gap-2 whitespace-nowrap text-[10px] font-bold text-slate-300" @click.stop>
+            <span>Kecepatan</span>
+            <input v-model.number="store.animationSpeed" type="range" min="0.5" max="3" step="0.5" class="w-20 accent-emerald-500">
+            <span class="w-8 font-mono text-white">{{ store.animationSpeed }}x</span>
+          </label>
         </div>
 
         <!-- Action: Reset -->
         <button 
           @click="store.resetSession()"
-          :disabled="store.isCalculating"
+          :disabled="store.isCalculating || isAnimating"
           class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold px-3 py-2 rounded-xl text-xs border border-slate-700 transition-all"
           title="Reset Sesi"
         >
@@ -508,6 +513,12 @@
 
 <script setup>
 import { useAppStore } from '../stores/appStore'
+
+defineProps({
+  isAnimating: { type: Boolean, default: false }
+})
+
+defineEmits(['advance-courier', 'advance-all'])
 
 const store = useAppStore()
 

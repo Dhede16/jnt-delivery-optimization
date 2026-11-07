@@ -43,6 +43,7 @@ export const useAppStore = defineStore('app', {
     // Session Execution State
     isRouteStarted: false,
     isCalculating: false,
+    animationSpeed: 1,
     errorMessage: '',
     warningMessage: '',
     

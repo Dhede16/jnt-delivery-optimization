@@ -2,7 +2,7 @@ import logging
 import math
 from typing import Any, Dict, List, Tuple
 import httpx
-from knn import haversine_km
+from knn import real_distance_knn
 from schemas import Courier, MatrixRequest, MatrixResponse, Point
 
 logger = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ def compute_haversine_matrix(points: List[Point]) -> Tuple[List[List[float]], Li
             if i == j:
                 matrix[i][j] = 0.0
             else:
-                dist_km = haversine_km(points[i].lat, points[i].lng, points[j].lat, points[j].lng)
+                dist_km = real_distance_knn(points[i].lat, points[i].lng, points[j].lat, points[j].lng)
                 matrix[i][j] = round(dist_km * 1000.0, 2)  # In meters
     return matrix, point_ids
 
@@ -143,7 +143,7 @@ async def get_distance_matrix(req: MatrixRequest) -> MatrixResponse:
                             if val is None:
                                 has_none = True
                                 # Haversine fallback for this cell
-                                fallback_d = haversine_km(all_points[i].lat, all_points[i].lng, all_points[j].lat, all_points[j].lng) * 1000.0
+                                fallback_d = real_distance_knn(all_points[i].lat, all_points[i].lng, all_points[j].lat, all_points[j].lng) * 1000.0
                                 row.append(round(fallback_d, 2))
                             else:
                                 row.append(round(float(val), 2))
@@ -208,7 +208,7 @@ async def get_route_geometry(coordinates: List[List[float]]) -> Tuple[Dict[str, 
     straight_line_coords = [[coord[1], coord[0]] for coord in coordinates]
     total_m = 0.0
     for i in range(len(coordinates) - 1):
-        total_m += haversine_km(
+        total_m += real_distance_knn(
             coordinates[i][0], coordinates[i][1],
             coordinates[i + 1][0], coordinates[i + 1][1]
         ) * 1000.0

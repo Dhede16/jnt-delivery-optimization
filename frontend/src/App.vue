@@ -19,26 +19,53 @@
 
     <!-- Main Interactive Map Area -->
     <main class="w-full h-full">
-      <MapView />
+      <MapView ref="mapView" />
     </main>
 
     <!-- Left Algorithm & Step-by-Step Transparency Panel -->
     <AlgorithmExplorationPanel />
 
     <!-- Bottom Input & Controls Drawer -->
-    <DataDrawer />
+    <DataDrawer :is-animating="isAnimating" @advance-courier="advanceCourier" @advance-all="advanceAllCouriers" />
 
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useAppStore } from './stores/appStore'
 import MapView from './components/MapView.vue'
 import AlgorithmExplorationPanel from './components/AlgorithmExplorationPanel.vue'
 import DataDrawer from './components/DataDrawer.vue'
 
 const store = useAppStore()
+const mapView = ref(null)
+const isAnimating = ref(false)
+
+async function advanceCourier(courierId) {
+  if (isAnimating.value) return
+  isAnimating.value = true
+  try {
+    await mapView.value.animateCourierStep(courierId)
+    await store.advanceCourierStep(courierId)
+  } finally {
+    isAnimating.value = false
+  }
+}
+
+async function advanceAllCouriers() {
+  if (isAnimating.value) return
+  isAnimating.value = true
+  try {
+    const activeCourierIds = Object.entries(store.courierStates)
+      .filter(([, state]) => !state.isFinished && state.remainingPackageIds.length > 0)
+      .map(([courierId]) => courierId)
+    await Promise.all(activeCourierIds.map(courierId => mapView.value.animateCourierStep(courierId)))
+    await store.advanceAllCouriers()
+  } finally {
+    isAnimating.value = false
+  }
+}
 
 onMounted(async () => {
   await store.init()

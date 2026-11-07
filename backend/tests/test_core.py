@@ -2,7 +2,7 @@ import asyncio
 import math
 import pytest
 from aco import brute_force_best_tour, nearest_neighbor_tour, solve_open_tsp_aco
-from knn import haversine_km, run_knn_allocation
+from knn import real_distance_knn, run_knn_allocation
 import osrm
 from schemas import (
     AllocateRequest,
@@ -12,9 +12,9 @@ from schemas import (
 )
 
 
-def test_haversine():
+def test_real_distance_knn():
     # Juanda to Pelabuhan Samarinda (~2.6 km)
-    d = haversine_km(-0.4897, 117.1352, -0.5020, 117.1520)
+    d = real_distance_knn(-0.4897, 117.1352, -0.5020, 117.1520)
     assert 2.0 < d < 3.5
 
 
