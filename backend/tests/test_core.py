@@ -1,11 +1,14 @@
 import asyncio
 import math
+import numpy as np
 import pytest
-from aco import brute_force_best_tour, nearest_neighbor_tour, solve_open_tsp_aco
+from aco import brute_force_best_tour, dijkstra_tour, nearest_neighbor_tour, solve_open_tsp_aco
+from comparison import run_comparisons
 from knn import real_distance_knn, run_knn_allocation
 import osrm
 from schemas import (
     AllocateRequest,
+    CompareRequest,
     Courier,
     OptimizeRequest,
     Point,
@@ -192,3 +195,41 @@ def test_aco_single_package():
     res = solve_open_tsp_aco(req)
     assert res.tour == ["p1"]
     assert res.total_distance_m == 1500.0
+
+
+def test_dijkstra_tour_uses_shortest_paths():
+    matrix = [
+        [0, 1, 10, 20],
+        [1, 0, 1, 10],
+        [10, 1, 0, 1],
+        [20, 10, 1, 0],
+    ]
+
+    tour, distance = dijkstra_tour(0, [2, 3], np.array(matrix))
+
+    assert tour == [2, 3]
+    assert distance == 3
+
+
+def test_comparison_includes_dijkstra_routes():
+    couriers = [
+        Courier(id="c1", name="Kurir 1", color="#3B82F6", ref_points=[Point(id="r1", lat=0, lng=0)]),
+        Courier(id="c2", name="Kurir 2", color="#EF4444", ref_points=[Point(id="r2", lat=1, lng=1)]),
+    ]
+    packages = [Point(id="p1", lat=0.1, lng=0.1), Point(id="p2", lat=0.9, lng=0.9)]
+    req = CompareRequest(
+        couriers=couriers,
+        packages=packages,
+        depot=Point(id="depot", lat=0, lng=0),
+        matrix=[[0, 100, 200], [100, 0, 50], [200, 50, 0]],
+        point_ids=["depot", "p1", "p2"],
+        iterations=1,
+    )
+
+    result = run_comparisons(req, [[0, 1000], [1000, 0]], [[100, 200], [200, 100]])
+    dijkstra = next(row for row in result.routing_comparisons if "Dijkstra" in row["method"])
+
+    assert dijkstra["routes"] == [
+        {"courier_id": "c1", "courier_name": "Kurir 1", "package_ids": ["p1"]},
+        {"courier_id": "c2", "courier_name": "Kurir 2", "package_ids": ["p2"]},
+    ]

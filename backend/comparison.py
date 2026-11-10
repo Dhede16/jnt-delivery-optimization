@@ -3,7 +3,7 @@ import random
 import time
 from typing import Any, Dict, List
 import numpy as np
-from aco import nearest_neighbor_tour, original_order_tour, solve_open_tsp_aco
+from aco import dijkstra_tour, nearest_neighbor_tour, original_order_tour, solve_open_tsp_aco
 from knn import run_knn_allocation
 from schemas import (
     AllocateRequest,
@@ -139,11 +139,25 @@ def run_comparisons(
     aco_tot_dist = 0.0
     nn_tot_dist = 0.0
     orig_tot_dist = 0.0
+    dijkstra_tot_dist = 0.0
     total_aco_time_ms = 0.0
+    total_dijkstra_time_ms = 0.0
+    aco_routes: List[Dict[str, Any]] = []
+    nn_routes: List[Dict[str, Any]] = []
+    original_routes: List[Dict[str, Any]] = []
+    dijkstra_routes: List[Dict[str, Any]] = []
 
     for cid, pids in knn_allocs.items():
         if not pids:
             continue
+        courier = next(c for c in req.couriers if c.id == cid)
+        pkg_indices = [id_to_idx[pid] for pid in pids if pid in id_to_idx]
+        nn_tour, _ = nearest_neighbor_tour(id_to_idx[depot_id], pkg_indices, dist_matrix)
+        dijkstra_started = time.perf_counter()
+        dijkstra_idxs, dijkstra_distance = dijkstra_tour(
+            id_to_idx[depot_id], pkg_indices, dist_matrix
+        )
+        total_dijkstra_time_ms += (time.perf_counter() - dijkstra_started) * 1000
         opt_req = OptimizeRequest(
             courier_id=cid,
             matrix=req.matrix,
@@ -160,7 +174,20 @@ def run_comparisons(
         aco_tot_dist += opt_res.total_distance_m
         nn_tot_dist += opt_res.nn_distance_m
         orig_tot_dist += opt_res.original_order_distance_m
+        dijkstra_tot_dist += dijkstra_distance
         total_aco_time_ms += opt_res.execution_time_ms
+        aco_routes.append({"courier_id": cid, "courier_name": courier.name, "package_ids": opt_res.tour})
+        nn_routes.append({
+            "courier_id": cid,
+            "courier_name": courier.name,
+            "package_ids": [req.point_ids[i] for i in nn_tour]
+        })
+        original_routes.append({"courier_id": cid, "courier_name": courier.name, "package_ids": pids})
+        dijkstra_routes.append({
+            "courier_id": cid,
+            "courier_name": courier.name,
+            "package_ids": [req.point_ids[i] for i in dijkstra_idxs]
+        })
 
     saving_vs_orig = ((orig_tot_dist - aco_tot_dist) / orig_tot_dist * 100) if orig_tot_dist > 0 else 0.0
     saving_vs_nn = ((nn_tot_dist - aco_tot_dist) / nn_tot_dist * 100) if nn_tot_dist > 0 else 0.0
@@ -172,7 +199,8 @@ def run_comparisons(
             "execution_time_ms": round(total_aco_time_ms, 2),
             "savings_vs_click_percent": round(max(saving_vs_orig, 0.0), 2),
             "savings_vs_nn_percent": round(max(saving_vs_nn, 0.0), 2),
-            "note": "Rute teroptimasi global dengan feromon dan heuristik jarak"
+            "note": "Rute teroptimasi global dengan feromon dan heuristik jarak",
+            "routes": aco_routes
         },
         {
             "method": "Nearest Neighbor (NN Heuristik)",
@@ -180,7 +208,17 @@ def run_comparisons(
             "execution_time_ms": 1.2,
             "savings_vs_click_percent": round(max(((orig_tot_dist - nn_tot_dist) / orig_tot_dist * 100) if orig_tot_dist > 0 else 0.0, 0.0), 2),
             "savings_vs_nn_percent": 0.0,
-            "note": "Heuristik lokal rakus (greedy), sering terjebak optimum lokal"
+            "note": "Heuristik lokal rakus (greedy), sering terjebak optimum lokal",
+            "routes": nn_routes
+        },
+        {
+            "method": "Dijkstra (Greedy Shortest Path)",
+            "total_distance_km": round(dijkstra_tot_dist / 1000.0, 3),
+            "execution_time_ms": round(total_dijkstra_time_ms, 2),
+            "savings_vs_click_percent": round(max(((orig_tot_dist - dijkstra_tot_dist) / orig_tot_dist * 100) if orig_tot_dist > 0 else 0.0, 0.0), 2),
+            "savings_vs_nn_percent": round(max(((nn_tot_dist - dijkstra_tot_dist) / nn_tot_dist * 100) if nn_tot_dist > 0 else 0.0, 0.0), 2),
+            "note": "Memilih paket terdekat berikutnya berdasarkan jarak terpendek Dijkstra",
+            "routes": dijkstra_routes
         },
         {
             "method": "Urutan Klik / Input Manual",
@@ -188,7 +226,8 @@ def run_comparisons(
             "execution_time_ms": 0.1,
             "savings_vs_click_percent": 0.0,
             "savings_vs_nn_percent": round(-saving_vs_nn, 2),
-            "note": "Urutan acak sesuai kronologi klik pengguna tanpa optimasi"
+            "note": "Urutan sesuai kronologi input tanpa optimasi",
+            "routes": original_routes
         }
     ]
 

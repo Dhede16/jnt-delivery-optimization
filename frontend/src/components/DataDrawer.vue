@@ -77,7 +77,7 @@
             <button class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-3 py-2 rounded-xl text-xs">
               Lanjut Kurir ▾
             </button>
-            <div class="absolute bottom-full right-0 mb-2 w-48 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 p-2 hidden group-hover:block z-50">
+            <div class="absolute bottom-full right-0 w-48 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 p-2 hidden group-hover:block z-50">
               <div v-for="c in store.couriers" :key="c.id" class="p-1.5 flex items-center justify-between hover:bg-slate-50 rounded-lg">
                 <span class="text-xs font-bold" :style="{ color: c.color }">{{ c.name }}</span>
                 <button 
@@ -92,7 +92,7 @@
           </div>
           <label class="flex items-center gap-2 whitespace-nowrap text-[10px] font-bold text-slate-300" @click.stop>
             <span>Kecepatan</span>
-            <input v-model.number="store.animationSpeed" type="range" min="0.5" max="3" step="0.5" class="w-20 accent-emerald-500">
+            <input v-model.number="store.animationSpeed" type="range" min="0.5" max="5" step="0.5" class="w-20 accent-emerald-500">
             <span class="w-8 font-mono text-white">{{ store.animationSpeed }}x</span>
           </label>
         </div>
@@ -264,7 +264,7 @@
             <span class="text-xs text-slate-500">Tambahkan kurir, pilih kurir, lalu klik peta untuk membuat titik acuan. Maksimal 10 kurir.</span>
             <button 
               @click="store.addCourier()"
-              :disabled="store.couriers.length >= 10 || store.isRouteStarted || store.isCalculating"
+              :disabled="store.couriers.length >= 10 || store.isRouteStarted"
               class="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow"
             >
               + Tambah Kurir Baru

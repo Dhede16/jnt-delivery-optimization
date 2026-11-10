@@ -53,7 +53,7 @@ Akses Vite di: **http://localhost:5173**
    - Dapat **melebar ke kanan-tengah menutupi 50% layar** ketika dibuka (*expand*).
    - **Tahap 1 (KNN)**: Menggunakan scikit-learn dan jarak jalan kendaraan dari OSRM untuk mencari $k$ titik acuan terdekat, menampilkan perhitungan suara (*voting*), *tie-breaking* pembobotan $1/d$, serta log penyeimbangan beban (*load balancing*). Alokasi gagal jika OSRM tidak tersedia atau rute jalan tidak ditemukan.
    - **Tahap 2 (ACO)**: Menampilkan rumus probabilitas transisi $P_{ij}$ dan pembaruan feromon $\tau_{ij}$, kurva konvergensi jarak per iterasi, log *milestone* iterasi semut, serta urutan perhentian.
-   - **Tahap 3 (Evaluasi Akademik)**: Membandingkan alokasi (KNN vs K-Means vs Acak) dan rute (ACO vs Nearest Neighbor vs Urutan Klik).
+   - **Tahap 3 (Evaluasi Akademik)**: Membandingkan alokasi (KNN vs K-Means vs Acak) dan rute (ACO, Nearest Neighbor, Dijkstra greedy, dan Urutan Klik). Setiap baris routing memiliki tombol simulasi sendiri yang membuka tab peta khusus untuk metode tersebut; kecepatan dapat diatur hingga 5x.
 
 3. **Panel Bawah (Drawer Masukan Data)**:
    - Panel di bagian bawah yang **dapat diangkat (*lift/expand*)** untuk memasukkan data dan diminimalkan agar pandangan ke peta tetap luas (*clean*).

@@ -1,3 +1,4 @@
+import heapq
 import itertools
 import math
 import time
@@ -23,6 +24,43 @@ def nearest_neighbor_tour(
         tour.append(next_idx)
         unvisited.remove(next_idx)
         curr = next_idx
+
+    return tour, total_dist
+
+
+def dijkstra_tour(
+    start_idx: int,
+    pkg_indices: List[int],
+    dist_matrix: np.ndarray
+) -> Tuple[List[int], float]:
+    """Greedily visits the nearest remaining package using Dijkstra distances."""
+    unvisited = set(pkg_indices)
+    current = start_idx
+    tour = []
+    total_dist = 0.0
+    n_points = dist_matrix.shape[0]
+
+    while unvisited:
+        distances = [float("inf")] * n_points
+        distances[current] = 0.0
+        queue = [(0.0, current)]
+
+        while queue:
+            distance, node = heapq.heappop(queue)
+            if distance > distances[node]:
+                continue
+            for neighbor in range(n_points):
+                edge_distance = float(dist_matrix[node, neighbor])
+                candidate = distance + edge_distance
+                if candidate < distances[neighbor]:
+                    distances[neighbor] = candidate
+                    heapq.heappush(queue, (candidate, neighbor))
+
+        next_idx = min(unvisited, key=lambda idx: distances[idx])
+        total_dist += distances[next_idx]
+        tour.append(next_idx)
+        unvisited.remove(next_idx)
+        current = next_idx
 
     return tour, total_dist
 
@@ -228,4 +266,3 @@ def solve_open_tsp_aco(req: OptimizeRequest) -> OptimizeResponse:
         nn_distance_m=round(nn_dist, 2),
         original_order_distance_m=round(orig_dist, 2)
     )
-

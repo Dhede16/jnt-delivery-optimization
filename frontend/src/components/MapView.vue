@@ -11,7 +11,7 @@
     ></div>
 
     <!-- Mode Badge & Tooltip -->
-    <div class="absolute top-4 left-20 z-10 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg border border-slate-200/80 flex items-center space-x-3 pointer-events-auto">
+    <div v-if="!evaluationMode" class="absolute top-4 left-20 z-10 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg border border-slate-200/80 flex items-center space-x-3 pointer-events-auto">
       <div class="flex items-center space-x-2">
         <span 
           class="w-3 h-3 rounded-full animate-pulse" 
@@ -32,8 +32,8 @@
     </div>
 
     <!-- Fallback / Notice Alert -->
-    <div 
-      v-if="store.isHaversineFallback && store.knnSteps.length"
+    <div
+      v-if="!evaluationMode && store.isHaversineFallback && store.knnSteps.length"
       class="absolute top-16 left-20 z-10 bg-amber-50/95 border border-amber-300 text-amber-800 px-3 py-1.5 rounded-lg shadow text-xs flex items-center space-x-2"
     >
       <span class="text-amber-500 font-bold">⚠️ Info Jarak:</span>
@@ -44,13 +44,23 @@
 
 <script setup>
 import { onMounted, ref, watch } from 'vue'
+import axios from 'axios'
 import L from 'leaflet'
 import { useAppStore } from '../stores/appStore'
 
 const store = useAppStore()
+const props = defineProps({
+  evaluationMode: { type: Boolean, default: false }
+})
 const mapContainer = ref(null)
 const isPackageLoading = ref(false)
 const cursorPosition = ref({ x: 0, y: 0 })
+const evaluationMethods = [
+  { name: 'ACO', color: '#EF4444', marker: 'A' },
+  { name: 'Nearest Neighbor', color: '#2563EB', marker: 'N' },
+  { name: 'Dijkstra', color: '#7C3AED', marker: 'D' },
+  { name: 'Urutan Klik', color: '#64748B', marker: 'K' }
+]
 let map = null
 
 // Layers
@@ -58,6 +68,7 @@ let depotLayer = null
 let refPointsLayer = null
 let packagesLayer = null
 let routePolylinesLayer = null
+let evaluationLayer = null
 let courierPositionLayer = null
 const courierMarkers = new Map()
 const plannedRouteLines = new Map()
@@ -88,10 +99,12 @@ function initMap() {
   refPointsLayer = L.layerGroup().addTo(map)
   packagesLayer = L.layerGroup().addTo(map)
   routePolylinesLayer = L.layerGroup().addTo(map)
+  evaluationLayer = L.layerGroup().addTo(map)
   courierPositionLayer = L.layerGroup().addTo(map)
 
   // Map Click Listener
   map.on('click', (e) => {
+    if (props.evaluationMode) return
     if (store.isRouteStarted || store.isCalculating) return
     const { lat, lng } = e.latlng
 
@@ -396,7 +409,89 @@ function animateCourierStep(courierId) {
   })
 }
 
-defineExpose({ animateCourierStep })
+async function animateEvaluation(comparisons) {
+  evaluationLayer.clearLayers()
+  const routes = comparisons.flatMap(comparison => {
+    const method = evaluationMethods.find(item => comparison.method.includes(item.name))
+    return method ? (comparison.routes || []).map(route => ({ method, route })) : []
+  })
+  const paths = await Promise.all(routes.map(async ({ method, route }) => {
+    const points = route.package_ids
+      .map(id => store.packages.find(pkg => pkg.id === id))
+      .filter(Boolean)
+    if (points.length === 0) return null
+
+    const coordinates = [
+      [store.depot.lat, store.depot.lng],
+      ...points.map(point => [point.lat, point.lng])
+    ]
+    const geometryRes = await axios.post('/api/geometry', { coordinates })
+    const roadCoordinates = geometryRes.data.geojson.coordinates
+    const latlngs = roadCoordinates.map(([lng, lat]) => L.latLng(lat, lng))
+    if (latlngs.length < 2) return null
+
+    L.polyline(latlngs, {
+      color: method.color,
+      weight: 4,
+      opacity: 0.8,
+      dashArray: method.name === 'Dijkstra' ? '8, 6' : undefined,
+      lineJoin: 'round'
+    }).addTo(evaluationLayer)
+
+    const icon = L.divIcon({
+      className: 'evaluation-route-marker',
+      html: `<div style="background:${method.color};color:white;border:2px solid white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.35)">${method.marker}</div>`,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
+    })
+    const marker = L.marker(latlngs[0], { icon }).addTo(evaluationLayer)
+    return { latlngs, marker }
+  }))
+  const validPaths = paths.filter(Boolean)
+
+  if (validPaths.length) {
+    const bounds = L.latLngBounds(validPaths.flatMap(path => path.latlngs))
+    map.fitBounds(bounds, { padding: [48, 48] })
+  }
+  await Promise.all(validPaths.map(({ latlngs, marker }) => animateEvaluationPath(latlngs, marker)))
+}
+
+function animateEvaluationPath(path, marker) {
+  const lengths = [0]
+  for (let i = 1; i < path.length; i++) {
+    lengths.push(lengths[i - 1] + path[i - 1].distanceTo(path[i]))
+  }
+  const totalDistance = lengths[lengths.length - 1]
+  if (!totalDistance) return Promise.resolve()
+
+  return new Promise(resolve => {
+    let elapsed = 0
+    let previousTimestamp
+    const move = timestamp => {
+      if (previousTimestamp !== undefined) {
+        elapsed += (timestamp - previousTimestamp) * store.animationSpeed
+      }
+      previousTimestamp = timestamp
+      const progress = Math.min(elapsed / 6000, 1)
+      const distance = totalDistance * progress
+      let segment = lengths.findIndex(length => length >= distance)
+      if (segment < 1) segment = 1
+      const segmentLength = lengths[segment] - lengths[segment - 1]
+      const segmentProgress = segmentLength ? (distance - lengths[segment - 1]) / segmentLength : 1
+      const from = path[segment - 1]
+      const to = path[segment]
+      marker.setLatLng([
+        from.lat + (to.lat - from.lat) * segmentProgress,
+        from.lng + (to.lng - from.lng) * segmentProgress
+      ])
+      if (progress < 1) requestAnimationFrame(move)
+      else resolve()
+    }
+    requestAnimationFrame(move)
+  })
+}
+
+defineExpose({ animateCourierStep, animateEvaluation })
 
 // Global window helpers for leaflet popup buttons
 window.__removePackage = (pkgId) => {

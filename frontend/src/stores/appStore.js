@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { nextTick } from 'vue'
 import axios from 'axios'
 
 const DEFAULT_COLORS = [
@@ -43,6 +44,7 @@ export const useAppStore = defineStore('app', {
     // Session Execution State
     isRouteStarted: false,
     isCalculating: false,
+    routingRequestId: 0,
     animationSpeed: 1,
     errorMessage: '',
     warningMessage: '',
@@ -144,12 +146,18 @@ export const useAppStore = defineStore('app', {
     },
 
     async refreshPackageAllocation() {
+      const requestId = ++this.routingRequestId
+      this.isCalculating = false
       this.resetRoutingStateOnly()
-      if (this.canCalculate) await this.calculateRoutes(false)
+      await nextTick()
+      await new Promise(resolve => requestAnimationFrame(resolve))
+      if (requestId === this.routingRequestId && this.canCalculate) {
+        await this.calculateRoutes(false, requestId)
+      }
     },
 
     async addCourier(name = '') {
-      if (this.isRouteStarted || this.isCalculating) return
+      if (this.isRouteStarted) return
       if (this.couriers.length >= 10) {
         alert('Maksimal 10 kurir diperbolehkan.')
         return
@@ -169,14 +177,14 @@ export const useAppStore = defineStore('app', {
     },
 
     async removeCourier(courierId) {
-      if (this.isRouteStarted || this.isCalculating) return
+      if (this.isRouteStarted) return
       this.couriers = this.couriers.filter(c => c.id !== courierId)
       if (this.activeCourierId === courierId) this.activeCourierId = this.couriers[0]?.id || null
       await this.refreshPackageAllocation()
     },
 
     async addRefPoint(courierId, lat, lng, name = '') {
-      if (this.isRouteStarted || this.isCalculating) return
+      if (this.isRouteStarted) return
       const courier = this.couriers.find(c => c.id === courierId)
       if (!courier) return
       const count = courier.ref_points.length + 1
@@ -190,7 +198,7 @@ export const useAppStore = defineStore('app', {
     },
 
     async removeRefPoint(courierId, refPointId) {
-      if (this.isRouteStarted || this.isCalculating) return
+      if (this.isRouteStarted) return
       const courier = this.couriers.find(c => c.id === courierId)
       if (!courier) return
       courier.ref_points = courier.ref_points.filter(rp => rp.id !== refPointId)
@@ -279,7 +287,7 @@ export const useAppStore = defineStore('app', {
       this.comparisonData = null
     },
 
-    async calculateRoutes(startSimulation = true) {
+    async calculateRoutes(startSimulation = true, requestId = ++this.routingRequestId) {
       if (!this.canCalculate) return
       this.isCalculating = true
       this.errorMessage = ''
@@ -291,6 +299,7 @@ export const useAppStore = defineStore('app', {
           depot: this.depot,
           packages: this.packages
         })
+        if (requestId !== this.routingRequestId) return
         this.matrix = matrixRes.data.matrix
         this.pointIds = matrixRes.data.point_ids
         this.isHaversineFallback = matrixRes.data.is_haversine_fallback
@@ -303,6 +312,7 @@ export const useAppStore = defineStore('app', {
           k: this.knnParams.k,
           balance_load: this.knnParams.balanceLoad
         })
+        if (requestId !== this.routingRequestId) return
         this.allocations = allocRes.data.allocations
         this.knnSteps = allocRes.data.steps
         this.knnRebalanceLogs = allocRes.data.rebalance_logs
@@ -356,6 +366,7 @@ export const useAppStore = defineStore('app', {
             q: this.acoParams.q,
             iterations: this.acoParams.iterations
           })
+          if (requestId !== this.routingRequestId) return
 
           const tour = optRes.data.tour // List of package ids in visit order
           // Assign order numbers to packages
@@ -373,6 +384,7 @@ export const useAppStore = defineStore('app', {
             })
           ]
           const geomRes = await axios.post('/api/geometry', { coordinates: waypoints })
+          if (requestId !== this.routingRequestId) return
 
           newCourierStates[courier.id] = {
             currentPos: { lat: this.depot.lat, lng: this.depot.lng },
@@ -393,10 +405,12 @@ export const useAppStore = defineStore('app', {
         if (startSimulation) this.isBottomDrawerOpen = false
         this.selectedCourierForAco = this.couriers.find(c => (this.allocations[c.id] || []).length > 0)?.id || this.couriers[0].id
       } catch (err) {
-        console.error('Error during calculateRoutes:', err)
-        this.errorMessage = err.response?.data?.detail || err.message || 'Terjadi kesalahan perhitungan rute.'
+        if (requestId === this.routingRequestId) {
+          console.error('Error during calculateRoutes:', err)
+          this.errorMessage = err.response?.data?.detail || err.message || 'Terjadi kesalahan perhitungan rute.'
+        }
       } finally {
-        this.isCalculating = false
+        if (requestId === this.routingRequestId) this.isCalculating = false
       }
     },
 
@@ -497,6 +511,7 @@ export const useAppStore = defineStore('app', {
     async runComparison() {
       if (this.packages.length === 0 || this.couriers.length === 0) return
       this.isCalculating = true
+      this.errorMessage = ''
       try {
         let m = this.matrix
         let pids = this.pointIds
@@ -507,6 +522,8 @@ export const useAppStore = defineStore('app', {
           })
           m = matrixRes.data.matrix
           pids = matrixRes.data.point_ids
+          this.matrix = m
+          this.pointIds = pids
         }
         const res = await axios.post('/api/compare', {
           couriers: this.couriers,
@@ -527,6 +544,7 @@ export const useAppStore = defineStore('app', {
         this.isLeftPanelExpanded = true
       } catch (err) {
         console.error('Error running comparisons:', err)
+        this.errorMessage = err.response?.data?.detail || err.message || 'Terjadi kesalahan saat menjalankan evaluasi.'
       } finally {
         this.isCalculating = false
       }

@@ -418,16 +418,18 @@
               <span>Uji Perbandingan Akademik & Evaluasi Kinerja (FR-17)</span>
             </div>
             <p class="text-emerald-800 leading-relaxed">
-              Membandingkan kualitas metode alokasi (<strong>KNN</strong> vs <strong>K-Means</strong> vs <strong>Acak</strong>) dan metode pengurutan rute (<strong>ACO</strong> vs <strong>Nearest Neighbor</strong> vs <strong>Urutan Klik</strong>) untuk membuktikan efisiensi jarak dan pemerataan beban.
+              Membandingkan kualitas metode alokasi (<strong>KNN</strong> vs <strong>K-Means</strong> vs <strong>Acak</strong>) dan metode pengurutan rute (<strong>ACO</strong>, <strong>Nearest Neighbor</strong>, <strong>Dijkstra greedy</strong>, dan <strong>Urutan Klik</strong>). Dijkstra memilih paket terdekat berikutnya berdasarkan jarak terpendek pada matriks jalan.
             </p>
-            <button 
-              @click="store.runComparison()"
-              :disabled="store.packages.length === 0 || store.isCalculating"
-              class="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-md transition-all flex items-center gap-2"
-            >
-              <span>{{ store.isCalculating ? 'Sedang Memproses...' : 'Jalankan Evaluasi Komparatif' }}</span>
-              <span>⚡</span>
-            </button>
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+              <button
+                @click="store.runComparison()"
+                :disabled="store.packages.length === 0 || store.couriers.length === 0 || store.isCalculating"
+                class="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-md transition-all flex items-center gap-2"
+              >
+                <span>{{ store.isCalculating ? 'Sedang Memproses...' : 'Jalankan Evaluasi Komparatif' }}</span>
+                <span>⚡</span>
+              </button>
+            </div>
           </div>
 
           <!-- Empty State -->
@@ -488,19 +490,29 @@
                       <th class="p-2.5">Hemat vs Klik</th>
                       <th class="p-2.5">Hemat vs NN</th>
                       <th class="p-2.5">Waktu (ms)</th>
+                      <th class="p-2.5">Simulasi</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-slate-100 font-mono text-[11px]">
                     <tr 
                       v-for="res in store.comparisonData.routing_comparisons" 
                       :key="res.method"
-                      :class="res.method.includes('ACO') ? 'bg-red-50/40 font-bold' : ''"
+                      :class="res.method.includes('ACO') ? 'bg-red-50/40 font-bold' : res.method.includes('Dijkstra') ? 'bg-violet-50/60 font-bold' : ''"
                     >
                       <td class="p-2.5 font-sans font-semibold text-slate-800">{{ res.method }}</td>
                       <td class="p-2.5 text-red-700 font-bold">{{ res.total_distance_km }} km</td>
                       <td class="p-2.5 text-emerald-600 font-bold">+{{ res.savings_vs_click_percent }}%</td>
                       <td class="p-2.5 text-blue-600 font-bold">+{{ res.savings_vs_nn_percent }}%</td>
                       <td class="p-2.5 text-slate-500">{{ res.execution_time_ms }} ms</td>
+                      <td class="p-2.5">
+                        <button
+                          @click="$emit('start-evaluation', res)"
+                          :disabled="store.isCalculating"
+                          class="whitespace-nowrap rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-indigo-700 disabled:opacity-40"
+                        >
+                          Simulasi {{ getSimulationLabel(res.method) }}
+                        </button>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -517,6 +529,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useAppStore } from '../stores/appStore'
+
+defineEmits(['start-evaluation'])
 
 const store = useAppStore()
 
@@ -542,6 +556,13 @@ function getCourierName(courierId) {
 function getCourierColor(courierId) {
   const c = store.couriers.find(cr => cr.id === courierId)
   return c ? c.color : '#3B82F6'
+}
+
+function getSimulationLabel(method) {
+  if (method.includes('Dijkstra')) return 'Dijkstra Greedy'
+  if (method.includes('Nearest Neighbor')) return 'NN'
+  if (method.includes('Urutan Klik')) return 'Urutan Klik'
+  return 'ACO'
 }
 
 function getConvergencePoints(data) {
