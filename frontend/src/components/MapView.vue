@@ -430,7 +430,7 @@ async function animateEvaluation(comparisons) {
     const latlngs = roadCoordinates.map(([lng, lat]) => L.latLng(lat, lng))
     if (latlngs.length < 2) return null
 
-    L.polyline(latlngs, {
+    const line = L.polyline([], {
       color: method.color,
       weight: 4,
       opacity: 0.8,
@@ -445,7 +445,7 @@ async function animateEvaluation(comparisons) {
       iconAnchor: [13, 13]
     })
     const marker = L.marker(latlngs[0], { icon }).addTo(evaluationLayer)
-    return { latlngs, marker }
+    return { latlngs, marker, line }
   }))
   const validPaths = paths.filter(Boolean)
 
@@ -453,10 +453,10 @@ async function animateEvaluation(comparisons) {
     const bounds = L.latLngBounds(validPaths.flatMap(path => path.latlngs))
     map.fitBounds(bounds, { padding: [48, 48] })
   }
-  await Promise.all(validPaths.map(({ latlngs, marker }) => animateEvaluationPath(latlngs, marker)))
+  await Promise.all(validPaths.map(({ latlngs, marker, line }) => animateEvaluationPath(latlngs, marker, line)))
 }
 
-function animateEvaluationPath(path, marker) {
+function animateEvaluationPath(path, marker, line) {
   const lengths = [0]
   for (let i = 1; i < path.length; i++) {
     lengths.push(lengths[i - 1] + path[i - 1].distanceTo(path[i]))
@@ -484,8 +484,13 @@ function animateEvaluationPath(path, marker) {
         from.lat + (to.lat - from.lat) * segmentProgress,
         from.lng + (to.lng - from.lng) * segmentProgress
       ])
+      line.setLatLngs([...path.slice(0, segment), marker.getLatLng()])
       if (progress < 1) requestAnimationFrame(move)
-      else resolve()
+      else {
+        marker.setLatLng(path[path.length - 1])
+        line.setLatLngs(path)
+        resolve()
+      }
     }
     requestAnimationFrame(move)
   })

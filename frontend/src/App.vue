@@ -4,6 +4,7 @@
       <MapView ref="mapView" evaluation-mode />
       <div class="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-3 rounded-xl bg-white/95 p-3 shadow-xl">
         <strong class="text-sm text-slate-800">Simulasi {{ evaluationMethod?.name }}</strong>
+        <span v-if="isEvaluationLoading" class="text-xs font-semibold text-indigo-700">Menghitung metode dan menyiapkan rute...</span>
         <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
           Kecepatan
           <input v-model.number="store.animationSpeed" type="range" min="0.5" max="5" step="0.5" class="w-24 accent-indigo-600">
@@ -11,7 +12,7 @@
         </label>
         <button
           @click="startEvaluation(evaluationData?.routing_comparison)"
-          :disabled="isAnimating || !evaluationData"
+          :disabled="isAnimating || isEvaluationLoading || !evaluationData?.routing_comparison"
           class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
         >
           {{ isAnimating ? 'Simulasi Berjalan...' : 'Ulangi Simulasi' }}
@@ -79,6 +80,7 @@ const evaluationMethods = [
 const evaluationData = ref(null)
 const evaluationError = ref('')
 const evaluationMethod = ref(null)
+const isEvaluationLoading = ref(false)
 
 async function advanceCourier(courierId) {
   if (isAnimating.value) return
@@ -114,7 +116,9 @@ function openEvaluationWindow(comparison) {
     depot: store.depot,
     packages: store.packages,
     couriers: store.couriers,
-    routing_comparison: comparison,
+    knnParams: store.knnParams,
+    acoParams: store.acoParams,
+    method: comparison.method,
     animationSpeed: store.animationSpeed
   }))
   const url = new URL(window.location.href)
@@ -153,15 +157,27 @@ onMounted(async () => {
       store.depot = evaluationData.value.depot
       store.packages = evaluationData.value.packages
       store.couriers = evaluationData.value.couriers
+      store.knnParams = evaluationData.value.knnParams
+      store.acoParams = evaluationData.value.acoParams
       store.animationSpeed = evaluationData.value.animationSpeed || 1
       evaluationMethod.value = evaluationMethods.find(method =>
-        evaluationData.value.routing_comparison.method.includes(method.name)
+        evaluationData.value.method.includes(method.name)
       )
       if (!evaluationMethod.value) throw new Error('Metode simulasi tidak dikenali.')
       await nextTick()
+      isEvaluationLoading.value = true
+      const results = await store.runComparison()
+      if (!results) throw new Error(store.errorMessage || 'Evaluasi metode gagal dihitung.')
+      evaluationData.value.routing_comparison = results.routing_comparisons.find(
+        comparison => comparison.method === evaluationData.value.method
+      )
+      if (!evaluationData.value.routing_comparison) throw new Error('Hasil untuk metode ini tidak ditemukan.')
+      isEvaluationLoading.value = false
       await startEvaluation(evaluationData.value.routing_comparison)
     } catch (err) {
       evaluationError.value = err.message || 'Gagal memuat data simulasi.'
+    } finally {
+      isEvaluationLoading.value = false
     }
     return
   }

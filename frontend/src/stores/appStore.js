@@ -542,9 +542,11 @@ export const useAppStore = defineStore('app', {
         this.comparisonData = res.data
         this.activeAlgoTab = 'compare'
         this.isLeftPanelExpanded = true
+        return res.data
       } catch (err) {
         console.error('Error running comparisons:', err)
         this.errorMessage = err.response?.data?.detail || err.message || 'Terjadi kesalahan saat menjalankan evaluasi.'
+        return null
       } finally {
         this.isCalculating = false
       }
