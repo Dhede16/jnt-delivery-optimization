@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-screen h-screen overflow-hidden bg-slate-900 select-none">
+  <div class="app-shell relative w-screen h-screen overflow-hidden select-none">
     <template v-if="isEvaluationWindow">
       <MapView ref="mapView" evaluation-mode />
       <div class="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-3 rounded-xl bg-white/95 p-3 shadow-xl">
@@ -35,7 +35,8 @@
     <template v-else>
     <!-- Top Alert Notifications -->
     <div 
-      v-if="store.errorMessage" 
+      v-if="store.errorMessage"
+      role="alert"
       class="fixed top-4 right-16 z-50 bg-red-600/95 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-3 text-xs font-semibold backdrop-blur-md border border-red-400"
     >
       <span>⚠️ {{ store.errorMessage }}</span>
@@ -43,7 +44,8 @@
     </div>
 
     <div 
-      v-if="store.warningMessage" 
+      v-if="store.warningMessage"
+      role="alert"
       class="fixed top-4 right-16 z-50 bg-amber-500/95 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-3 text-xs font-semibold backdrop-blur-md border border-amber-300"
     >
       <span>ℹ️ {{ store.warningMessage }}</span>

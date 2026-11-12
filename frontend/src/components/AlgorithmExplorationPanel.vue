@@ -1,29 +1,23 @@
 <template>
-  <div 
-    class="fixed top-0 left-0 bottom-0 z-30 transition-all duration-300 ease-in-out flex shadow-2xl"
-    :class="store.isLeftPanelExpanded ? 'w-[50vw]' : 'w-16'"
+  <div
+    class="algorithm-panel fixed top-0 left-0 bottom-0 z-30 flex transition-all duration-200 ease-in-out"
+    :class="store.isLeftPanelExpanded ? ['w-[50vw]', 'is-expanded'] : ['w-16', 'is-collapsed']"
   >
     <!-- Collapsed Slim Vertical Bar -->
     <div 
-      class="w-16 h-full bg-slate-900 border-r border-slate-800 flex flex-col items-center py-5 justify-between text-white select-none z-20 shrink-0"
+      class="algorithm-sidebar w-16 h-full flex flex-col items-center py-5 justify-between text-white select-none z-20 shrink-0"
     >
       <div class="flex flex-col items-center space-y-6">
-        <!-- Logo / Icon -->
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center font-black text-sm shadow-lg tracking-tighter">
-          J&T
-        </div>
-
         <!-- Toggle Expand Button -->
         <button 
           @click="store.isLeftPanelExpanded = !store.isLeftPanelExpanded"
-          class="p-2.5 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all flex flex-col items-center"
+          aria-label="Buka atau tutup panel algoritma"
+          class="p-2.5 rounded-xl text-slate-300 hover:text-white transition-all flex flex-col items-center"
           :title="store.isLeftPanelExpanded ? 'Kecilkan Panel' : 'Perlebar Tahapan Algoritma'"
         >
-          <svg v-if="!store.isLeftPanelExpanded" class="w-6 h-6 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-          </svg>
-          <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="5" width="16" height="14" rx="2" stroke-width="2" />
+            <path d="M9 5v14" stroke-width="2" />
           </svg>
           <span class="text-[9px] mt-1 font-semibold text-slate-400">
             {{ store.isLeftPanelExpanded ? 'Tutup' : 'Buka' }}
@@ -36,7 +30,7 @@
         <button 
           @click="selectTab('knn')"
           class="p-2.5 rounded-xl transition-all flex flex-col items-center"
-          :class="store.activeAlgoTab === 'knn' ? 'bg-indigo-600/30 text-indigo-400 border border-indigo-500/50' : 'text-slate-400 hover:text-white'"
+          :class="store.activeAlgoTab === 'knn' ? 'bg-white/20 text-white border border-white/40' : 'text-blue-100 hover:text-white'"
           title="Tahap 1: KNN Alokasi"
         >
           <span class="text-xs font-bold">KNN</span>
@@ -45,7 +39,7 @@
         <button 
           @click="selectTab('aco')"
           class="p-2.5 rounded-xl transition-all flex flex-col items-center"
-          :class="store.activeAlgoTab === 'aco' ? 'bg-red-600/30 text-red-400 border border-red-500/50' : 'text-slate-400 hover:text-white'"
+          :class="store.activeAlgoTab === 'aco' ? 'bg-white/20 text-white border border-white/40' : 'text-blue-100 hover:text-white'"
           title="Tahap 2: ACO Optimasi Rute"
         >
           <span class="text-xs font-bold">ACO</span>
@@ -54,7 +48,7 @@
         <button 
           @click="selectTab('compare')"
           class="p-2.5 rounded-xl transition-all flex flex-col items-center"
-          :class="store.activeAlgoTab === 'compare' ? 'bg-emerald-600/30 text-emerald-400 border border-emerald-500/50' : 'text-slate-400 hover:text-white'"
+          :class="store.activeAlgoTab === 'compare' ? 'bg-white/20 text-white border border-white/40' : 'text-blue-100 hover:text-white'"
           title="Tahap 3: Uji Perbandingan"
         >
           <span class="text-xs font-bold">EVAL</span>
@@ -69,7 +63,7 @@
     <!-- Expanded Body (Width covers 50% screen) -->
     <div 
       v-show="store.isLeftPanelExpanded"
-      class="flex-1 h-full bg-white flex flex-col overflow-hidden text-slate-800 shadow-2xl"
+      class="algorithm-content flex-1 h-full flex flex-col overflow-hidden text-slate-800"
     >
       <!-- Panel Header -->
       <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/80 flex items-center justify-between">
@@ -96,7 +90,7 @@
         <button 
           @click="store.activeAlgoTab = 'knn'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
-          :class="store.activeAlgoTab === 'knn' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
+          :class="store.activeAlgoTab === 'knn' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
           <span>🎯</span>
           <span>1. Alokasi KNN</span>
@@ -108,7 +102,7 @@
         <button 
           @click="store.activeAlgoTab = 'aco'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
-          :class="store.activeAlgoTab === 'aco' ? 'border-red-600 text-red-600 bg-red-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
+          :class="store.activeAlgoTab === 'aco' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
           <span>🐜</span>
           <span>2. Optimasi Rute ACO</span>
@@ -118,7 +112,7 @@
         <button 
           @click="store.activeAlgoTab = 'compare'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
-          :class="store.activeAlgoTab === 'compare' ? 'border-emerald-600 text-emerald-600 bg-emerald-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
+          :class="store.activeAlgoTab === 'compare' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
           <span>📊</span>
           <span>3. Evaluasi & Perbandingan</span>

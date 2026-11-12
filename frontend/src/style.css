@@ -2,6 +2,297 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light;
+  --color-primary: #3366ff;
+  --color-primary-dark: #2b4fd8;
+  --color-primary-soft: #e8eefb;
+  --color-accent: #00c9a7;
+  --color-bg: #f5f7fb;
+  --color-text: #2b3a67;
+  --color-text-muted: #68748e;
+  --color-border: #e3e8f2;
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-bg-dense: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --shadow-card: 0 2px 8px rgba(30, 50, 100, 0.08);
+  --shadow-floating: 0 12px 30px rgba(51, 102, 255, 0.18);
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  min-width: 320px;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.app-shell {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.algorithm-panel {
+  padding: 12px 0 12px 12px;
+  pointer-events: none;
+}
+
+.algorithm-panel > * {
+  pointer-events: auto;
+}
+
+.algorithm-sidebar {
+  height: calc(100% - 24px);
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  background: rgba(51, 102, 255, 0.78);
+  box-shadow: var(--shadow-floating);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+}
+
+.algorithm-sidebar .text-slate-400,
+.algorithm-sidebar .text-slate-500 {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.algorithm-content {
+  margin-left: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  background: var(--glass-bg);
+  box-shadow: var(--shadow-floating), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+.algorithm-content > div:first-child,
+.algorithm-content > div:nth-child(2) {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.algorithm-content .bg-white {
+  background: var(--glass-bg-dense);
+}
+
+.algorithm-content .bg-slate-50 {
+  background: rgba(245, 247, 251, 0.9);
+}
+
+.control-drawer {
+  left: 76px;
+  right: 12px;
+  bottom: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  background: var(--glass-bg);
+  box-shadow: var(--shadow-floating);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+.control-drawer.is-open {
+  height: min(440px, calc(100vh - 24px));
+}
+
+.control-drawer.is-collapsed {
+  height: 64px;
+}
+
+.control-drawer-header {
+  flex: 0 0 64px;
+  background: rgba(255, 255, 255, 0.76);
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 15px 15px 0 0;
+}
+
+.control-drawer-header:hover {
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.control-drawer > div:last-child {
+  background: rgba(245, 247, 251, 0.76);
+  border-radius: 0 0 15px 15px;
+}
+
+.control-drawer [class*="border-red-600"],
+.control-drawer [class*="text-red-600"] {
+  --tw-border-opacity: 1;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.control-drawer [class*="bg-red-50"] {
+  background-color: var(--color-primary-soft);
+}
+
+.control-drawer [class*="bg-indigo-600"] {
+  background-color: var(--color-primary);
+}
+
+.map-mode-banner {
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--color-text);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+}
+
+.leaflet-control-zoom a {
+  color: var(--color-text) !important;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  min-height: 36px;
+  transition-duration: 180ms;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1279px) {
+  .algorithm-panel {
+    padding-left: 8px;
+  }
+
+  .algorithm-panel.is-expanded {
+    width: min(520px, calc(100vw - 16px));
+  }
+
+  .control-drawer {
+    left: 72px;
+    right: 8px;
+    bottom: 8px;
+  }
+}
+
+@media (max-width: 767px) {
+  .algorithm-panel {
+    padding: 8px;
+    bottom: auto;
+    height: min(64vh, 560px);
+    max-height: calc(100vh - 16px);
+  }
+
+  .algorithm-panel.is-expanded {
+    width: calc(100vw - 16px);
+  }
+
+  .algorithm-sidebar {
+    height: 100%;
+  }
+
+  .algorithm-content {
+    margin-left: 8px;
+  }
+
+  .algorithm-content > div:first-child {
+    padding: 12px;
+  }
+
+  .algorithm-content > div:first-child h2 {
+    font-size: 13px;
+  }
+
+  .algorithm-content > div:first-child p,
+  .algorithm-content > div:first-child h2 span:last-child {
+    display: none;
+  }
+
+  .control-drawer {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+  }
+
+  .control-drawer.is-open {
+    height: min(52vh, 440px);
+  }
+
+  .control-drawer-header {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .control-drawer-header > div:first-child {
+    gap: 8px;
+  }
+
+  .control-drawer-header > div:first-child > div:last-child span:first-child {
+    display: none;
+  }
+
+  .control-drawer-header > div:last-child {
+    gap: 6px;
+  }
+
+  .control-drawer-header button {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .map-mode-banner {
+    top: 8px;
+    left: 76px;
+    max-width: calc(100vw - 88px);
+    padding: 8px 10px;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .algorithm-sidebar,
+  .algorithm-content,
+  .control-drawer,
+  .map-mode-banner {
+    background: rgba(255, 255, 255, 0.96);
+  }
+
+  .algorithm-sidebar {
+    background: #3366ff;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .algorithm-sidebar,
+  .algorithm-content,
+  .control-drawer,
+  .map-mode-banner {
+    background: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .algorithm-sidebar {
+    background: var(--color-primary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
@@ -65,4 +356,3 @@
   50% {opacity: 1.0;}
   100% {-webkit-transform: scale(1.4, 1.4); opacity: 0.0;}
 }
-

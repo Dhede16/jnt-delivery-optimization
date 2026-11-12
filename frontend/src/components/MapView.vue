@@ -11,7 +11,7 @@
     ></div>
 
     <!-- Mode Badge & Tooltip -->
-    <div v-if="!evaluationMode" class="absolute top-4 left-20 z-10 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg border border-slate-200/80 flex items-center space-x-3 pointer-events-auto">
+    <div v-if="!evaluationMode" class="map-mode-banner absolute top-4 left-20 z-10 px-4 py-2 rounded-xl flex items-center space-x-3 pointer-events-auto">
       <div class="flex items-center space-x-2">
         <span 
           class="w-3 h-3 rounded-full animate-pulse" 
@@ -34,6 +34,7 @@
     <!-- Fallback / Notice Alert -->
     <div
       v-if="!evaluationMode && store.isHaversineFallback && store.knnSteps.length"
+      role="alert"
       class="absolute top-16 left-20 z-10 bg-amber-50/95 border border-amber-300 text-amber-800 px-3 py-1.5 rounded-lg shadow text-xs flex items-center space-x-2"
     >
       <span class="text-amber-500 font-bold">⚠️ Info Jarak:</span>

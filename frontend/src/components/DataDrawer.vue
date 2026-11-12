@@ -1,16 +1,22 @@
 <template>
   <div 
-    class="fixed bottom-0 right-0 left-16 z-20 transition-all duration-300 ease-in-out flex flex-col bg-white border-t border-slate-200 shadow-2xl rounded-t-3xl"
-    :class="store.isBottomDrawerOpen ? 'h-[440px]' : 'h-16'"
+    class="control-drawer fixed z-20 flex flex-col transition-all duration-200 ease-in-out"
+    :class="store.isBottomDrawerOpen ? ['h-[440px]', 'is-open'] : ['h-16', 'is-collapsed']"
   >
     <!-- Drawer Drag / Toggle Handle Bar -->
     <div 
       @click="store.isBottomDrawerOpen = !store.isBottomDrawerOpen"
-      class="h-16 px-6 bg-slate-900 text-white rounded-t-3xl flex items-center justify-between cursor-pointer select-none hover:bg-slate-800 transition-colors"
+      class="control-drawer-header h-16 px-6 flex items-center justify-between cursor-pointer select-none transition-colors"
     >
       <div class="flex items-center space-x-4">
         <!-- Drawer Chevron Indicator -->
-        <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-300">
+        <button
+          type="button"
+          @click.stop="store.isBottomDrawerOpen = !store.isBottomDrawerOpen"
+          :aria-expanded="store.isBottomDrawerOpen"
+          aria-label="Buka atau tutup panel masukan dan kontrol"
+          class="w-10 h-10 rounded-full bg-primary-soft flex items-center justify-center text-primary"
+        >
           <svg 
             class="w-5 h-5 transform transition-transform" 
             :class="store.isBottomDrawerOpen ? 'rotate-180' : 'rotate-0'"
@@ -20,11 +26,11 @@
           >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
           </svg>
-        </div>
+        </button>
 
         <div>
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Panel Masukan Data & Kontrol</span>
-          <span class="text-sm font-extrabold text-white">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Panel Masukan Data & Kontrol</span>
+          <span class="text-sm font-extrabold text-ink">
             {{ store.isBottomDrawerOpen ? 'Klik untuk Menyembunyikan' : 'Klik untuk Mengangkat & Memasukkan Data' }}
           </span>
         </div>
@@ -32,19 +38,19 @@
 
       <!-- Quick Metrics Pills -->
       <div class="flex items-center space-x-3 text-xs" @click.stop>
-        <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+        <div class="hidden sm:flex items-center space-x-2 bg-white/70 px-3 py-1.5 rounded-xl border border-line">
           <span class="text-slate-400">Paket:</span>
-          <span class="font-bold text-white font-mono">{{ store.packages.length }}/50</span>
+          <span class="font-bold text-ink font-mono">{{ store.packages.length }}/50</span>
         </div>
 
-        <div class="hidden sm:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+        <div class="hidden sm:flex items-center space-x-2 bg-white/70 px-3 py-1.5 rounded-xl border border-line">
           <span class="text-slate-400">Kurir:</span>
-          <span class="font-bold text-white font-mono">{{ store.couriers.length }}/10</span>
+          <span class="font-bold text-ink font-mono">{{ store.couriers.length }}/10</span>
         </div>
 
-        <div v-if="store.isRouteStarted" class="flex items-center space-x-2 bg-red-950/80 px-3 py-1.5 rounded-xl border border-red-800 text-red-200">
+        <div v-if="store.isRouteStarted" class="flex items-center space-x-2 bg-primary-soft px-3 py-1.5 rounded-xl border border-line text-primary">
           <span>Ditempuh:</span>
-          <span class="font-bold font-mono text-white">{{ store.totalDistanceTraveledKm }} km</span>
+          <span class="font-bold font-mono text-ink">{{ store.totalDistanceTraveledKm }} km</span>
           <span class="text-slate-400">/ {{ store.totalDistancePlannedKm }} km</span>
         </div>
 
@@ -53,7 +59,7 @@
           v-if="store.canCalculate && !store.isRouteStarted"
           @click="store.calculateRoutes()"
           :disabled="!store.canCalculate"
-          class="bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold px-5 py-2 rounded-xl text-xs shadow-lg transition-all flex items-center space-x-2"
+          class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold px-5 py-2 rounded-xl text-xs shadow-lg transition-all flex items-center space-x-2"
         >
           <span>{{ store.isCalculating ? 'Menghitung...' : 'Mulai Simulasi' }}</span>
           <span v-if="!store.isCalculating">🚀</span>
@@ -62,10 +68,10 @@
         <!-- Action: Step Execution (Lanjut) -->
         <div v-else-if="store.isRouteStarted" class="flex items-center space-x-2">
           <!-- Advance Specific Courier or All -->
-          <button 
+          <button
             @click="$emit('advance-all')"
             :disabled="!store.canAdvanceAny || store.isCalculating || isAnimating"
-            class="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center space-x-1"
+            class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center space-x-1"
             title="Lanjut 1 langkah untuk semua kurir aktif"
           >
             <span>Lanjut Semua</span>
@@ -93,15 +99,15 @@
           <label class="flex items-center gap-2 whitespace-nowrap text-[10px] font-bold text-slate-300" @click.stop>
             <span>Kecepatan</span>
             <input v-model.number="store.animationSpeed" type="range" min="0.5" max="5" step="0.5" class="w-20 accent-emerald-500">
-            <span class="w-8 font-mono text-white">{{ store.animationSpeed }}x</span>
+            <span class="w-8 font-mono text-ink">{{ store.animationSpeed }}x</span>
           </label>
         </div>
 
         <!-- Action: Reset -->
         <button 
-          @click="store.resetSession()"
+          @click="confirmReset"
           :disabled="store.isCalculating || isAnimating"
-          class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold px-3 py-2 rounded-xl text-xs border border-slate-700 transition-all"
+          class="bg-white/70 hover:bg-white text-slate-600 hover:text-ink font-bold px-3 py-2 rounded-xl text-xs border border-line transition-all"
           title="Reset Sesi"
         >
           Reset
@@ -521,6 +527,12 @@ defineProps({
 defineEmits(['advance-courier', 'advance-all'])
 
 const store = useAppStore()
+
+function confirmReset() {
+  if (window.confirm('Reset sesi akan menghapus paket, kurir, hasil, dan riwayat. Lanjutkan?')) {
+    store.resetSession()
+  }
+}
 
 function getCourierName(courierId) {
   const c = store.couriers.find(cr => cr.id === courierId)

@@ -3,16 +3,16 @@ import { nextTick } from 'vue'
 import axios from 'axios'
 
 const DEFAULT_COLORS = [
-  '#3B82F6', // Blue
-  '#EF4444', // Red
-  '#10B981', // Green
-  '#F59E0B', // Amber
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
-  '#F97316', // Orange
-  '#6366F1', // Indigo
-  '#14B8A6'  // Teal
+  '#3366FF',
+  '#FF6B6B',
+  '#2FB67C',
+  '#F5A524',
+  '#9B5DE5',
+  '#00B8D9',
+  '#F15BB5',
+  '#8D6E63',
+  '#5C6BC0',
+  '#26A69A'
 ]
 
 export const useAppStore = defineStore('app', {
@@ -73,7 +73,7 @@ export const useAppStore = defineStore('app', {
 
     // UI Panels
     isLeftPanelExpanded: false,
-    isBottomDrawerOpen: true,
+    isBottomDrawerOpen: false,
     bottomDrawerTab: 'packages', // 'packages' | 'couriers' | 'params' | 'scenarios' | 'history'
     activeAlgoTab: 'knn', // 'knn' | 'aco' | 'compare'
     selectedStepPackageId: null,
