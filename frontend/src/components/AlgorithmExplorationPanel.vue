@@ -199,11 +199,11 @@
                 <strong>🔄 Penyeimbangan Beban Terjadi:</strong> {{ activeStep.rebalanced_reason }}
               </div>
 
-              <!-- Top-k Neighbors Voting Table -->
+              <!-- Ranked reference points; only the selected k vote for allocation. -->
               <div>
                 <h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
                   <span>🏆</span>
-                  <span>{{ store.effectiveK }} Titik Acuan Terdekat (Top-k):</span>
+                  <span>Urutan Semua Titik Acuan ({{ store.effectiveK }} teratas dipakai untuk menentukan kurir):</span>
                 </h4>
                 <div class="overflow-x-auto rounded-xl border border-slate-200">
                   <table class="w-full text-left text-xs">
@@ -214,11 +214,12 @@
                         <th class="p-2.5">Kurir Pemilik</th>
                         <th class="p-2.5">Jarak Jalan (OSRM)</th>
                         <th class="p-2.5">Bobot (1/d)</th>
+                        <th class="p-2.5">Dipakai</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                       <tr 
-                        v-for="(n, i) in activeStep.top_k" 
+                        v-for="(n, i) in activeStep.all_distances"
                         :key="n.ref_point_id"
                         class="hover:bg-slate-50"
                       >
@@ -229,6 +230,9 @@
                         </td>
                         <td class="p-2.5 font-mono text-slate-700">{{ n.distance_km }} km</td>
                         <td class="p-2.5 font-mono text-indigo-600 font-semibold">{{ n.weight.toFixed(4) }}</td>
+                        <td class="p-2.5 font-semibold" :class="activeStep.top_k.some(item => item.ref_point_id === n.ref_point_id) ? 'text-emerald-700' : 'text-slate-400'">
+                          {{ activeStep.top_k.some(item => item.ref_point_id === n.ref_point_id) ? 'Ya' : 'Tidak' }}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
