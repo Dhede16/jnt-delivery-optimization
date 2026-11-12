@@ -19,8 +19,13 @@
         </button>
       </div>
       <div class="absolute bottom-4 left-4 z-20 rounded-xl bg-white/95 p-3 shadow-xl text-xs font-semibold text-slate-700 space-y-1">
-        <div v-if="evaluationMethod" class="flex items-center gap-2">
-          <span class="h-1 w-4 rounded" :style="{ backgroundColor: evaluationMethod.color }"></span>{{ evaluationMethod.name }}
+        <div v-if="evaluationMethod" class="font-bold">{{ evaluationMethod.name }}</div>
+        <div
+          v-for="courier in store.couriers.filter(item => evaluationData?.routing_comparison?.routes?.some(route => route.courier_id === item.id))"
+          :key="courier.id"
+          class="flex items-center gap-2"
+        >
+          <span class="h-1 w-4 rounded" :style="{ backgroundColor: courier.color }"></span>{{ courier.name }}
         </div>
       </div>
       <div v-if="evaluationError" class="absolute bottom-4 right-4 z-20 max-w-lg rounded-xl bg-red-600 p-3 text-xs font-semibold text-white shadow-xl">
@@ -72,10 +77,10 @@ const mapView = ref(null)
 const isAnimating = ref(false)
 const isEvaluationWindow = new URLSearchParams(window.location.search).has('evaluation')
 const evaluationMethods = [
-  { name: 'ACO', color: '#EF4444' },
-  { name: 'Nearest Neighbor', color: '#2563EB' },
-  { name: 'Dijkstra', color: '#7C3AED' },
-  { name: 'Urutan Klik', color: '#64748B' }
+  { name: 'ACO' },
+  { name: 'Nearest Neighbor' },
+  { name: 'Dijkstra' },
+  { name: 'Urutan Klik' }
 ]
 const evaluationData = ref(null)
 const evaluationError = ref('')

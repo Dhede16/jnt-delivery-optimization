@@ -56,10 +56,10 @@ const mapContainer = ref(null)
 const isPackageLoading = ref(false)
 const cursorPosition = ref({ x: 0, y: 0 })
 const evaluationMethods = [
-  { name: 'ACO', color: '#EF4444', marker: 'A' },
-  { name: 'Nearest Neighbor', color: '#2563EB', marker: 'N' },
-  { name: 'Dijkstra', color: '#7C3AED', marker: 'D' },
-  { name: 'Urutan Klik', color: '#64748B', marker: 'K' }
+  { name: 'ACO' },
+  { name: 'Nearest Neighbor' },
+  { name: 'Dijkstra' },
+  { name: 'Urutan Klik' }
 ]
 let map = null
 
@@ -413,9 +413,12 @@ async function animateEvaluation(comparisons) {
   evaluationLayer.clearLayers()
   const routes = comparisons.flatMap(comparison => {
     const method = evaluationMethods.find(item => comparison.method.includes(item.name))
-    return method ? (comparison.routes || []).map(route => ({ method, route })) : []
+    return method ? (comparison.routes || []).map(route => ({
+      route,
+      courier: store.couriers.find(item => item.id === route.courier_id)
+    })) : []
   })
-  const paths = await Promise.all(routes.map(async ({ method, route }) => {
+  const paths = await Promise.all(routes.map(async ({ courier, route }) => {
     const points = route.package_ids
       .map(id => store.packages.find(pkg => pkg.id === id))
       .filter(Boolean)
@@ -431,16 +434,16 @@ async function animateEvaluation(comparisons) {
     if (latlngs.length < 2) return null
 
     const line = L.polyline([], {
-      color: method.color,
+      color: courier?.color || '#3B82F6',
       weight: 4,
       opacity: 0.8,
-      dashArray: method.name === 'Dijkstra' ? '8, 6' : undefined,
       lineJoin: 'round'
     }).addTo(evaluationLayer)
 
+    const courierIndex = store.couriers.findIndex(item => item.id === route.courier_id)
     const icon = L.divIcon({
       className: 'evaluation-route-marker',
-      html: `<div style="background:${method.color};color:white;border:2px solid white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.35)">${method.marker}</div>`,
+      html: `<div style="background:${courier?.color || '#3B82F6'};color:white;border:2px solid white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.35)">${courierIndex + 1}</div>`,
       iconSize: [26, 26],
       iconAnchor: [13, 13]
     })
