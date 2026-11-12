@@ -167,6 +167,16 @@ select {
   font: inherit;
 }
 
+button[class~="bg-white"],
+button[style*="background: white"] {
+  color: #111827;
+}
+
+button[class~="bg-white"][class*="text-white"],
+button[style*="background: white"][style*="color: white"] {
+  color: #111827 !important;
+}
+
 button {
   min-height: 36px;
   transition-duration: 180ms;
