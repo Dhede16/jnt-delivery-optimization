@@ -93,6 +93,7 @@ body {
   border-radius: 16px;
   background: var(--glass-bg);
   box-shadow: var(--shadow-floating);
+  overflow: hidden;
   backdrop-filter: blur(16px) saturate(160%);
   -webkit-backdrop-filter: blur(16px) saturate(160%);
 }
@@ -119,6 +120,17 @@ body {
 .control-drawer > div:last-child {
   background: rgba(245, 247, 251, 0.76);
   border-radius: 0 0 15px 15px;
+}
+
+.drawer-content {
+  min-height: 0;
+  transition: opacity 350ms ease, transform 350ms ease;
+}
+
+.drawer-content-enter-from,
+.drawer-content-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
 .control-drawer [class*="border-red-600"],

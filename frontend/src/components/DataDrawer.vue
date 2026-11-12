@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="control-drawer fixed z-20 flex flex-col transition-all duration-200 ease-in-out"
+    class="control-drawer fixed z-20 flex flex-col transition-all duration-500 ease-in-out"
     :class="store.isBottomDrawerOpen ? ['h-[440px]', 'is-open'] : ['h-16', 'is-collapsed']"
   >
     <!-- Drawer Drag / Toggle Handle Bar -->
@@ -115,7 +115,8 @@
       </div>
     </div>
 
-    <div v-show="store.isBottomDrawerOpen" class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+    <Transition name="drawer-content">
+    <div v-if="store.isBottomDrawerOpen" class="drawer-content flex-1 flex flex-col overflow-hidden bg-slate-50">
       <!-- Tabs Navigation -->
       <div class="flex border-b border-slate-200 bg-white px-6">
         <button 
@@ -514,6 +515,7 @@
 
       </div>
     </div>
+    </Transition>
   </div>
 </template>
 
