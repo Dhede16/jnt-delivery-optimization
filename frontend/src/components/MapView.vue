@@ -433,6 +433,24 @@ async function animateEvaluation(comparisons) {
     const latlngs = roadCoordinates.map(([lng, lat]) => L.latLng(lat, lng))
     if (latlngs.length < 2) return null
 
+    L.polyline(latlngs, {
+      color: courier?.color || '#3B82F6',
+      weight: 3,
+      opacity: 0.35,
+      dashArray: '7, 7',
+      lineJoin: 'round'
+    }).addTo(evaluationLayer)
+
+    points.forEach((point, index) => {
+      const icon = L.divIcon({
+        className: 'evaluation-stop-marker',
+        html: `<div style="background:white;color:${courier?.color || '#3B82F6'};border:2px solid ${courier?.color || '#3B82F6'};border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.3)">${index + 1}</div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      })
+      L.marker([point.lat, point.lng], { icon }).addTo(evaluationLayer)
+    })
+
     const line = L.polyline([], {
       color: courier?.color || '#3B82F6',
       weight: 4,
