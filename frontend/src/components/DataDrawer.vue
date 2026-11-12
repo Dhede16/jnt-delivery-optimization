@@ -59,7 +59,7 @@
           v-if="store.canCalculate && !store.isRouteStarted"
           @click="store.calculateRoutes()"
           :disabled="!store.canCalculate"
-          class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold px-5 py-2 rounded-xl text-xs shadow-lg transition-all flex items-center space-x-2"
+          class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-ink font-extrabold px-5 py-2 rounded-xl text-xs shadow-lg transition-all flex items-center space-x-2"
         >
           <span>{{ store.isCalculating ? 'Menghitung...' : 'Mulai Simulasi' }}</span>
           <span v-if="!store.isCalculating">🚀</span>
@@ -71,32 +71,14 @@
           <button
             @click="$emit('advance-all')"
             :disabled="!store.canAdvanceAny || store.isCalculating || isAnimating"
-            class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center space-x-1"
+            class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-ink font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center space-x-1"
             title="Lanjut 1 langkah untuk semua kurir aktif"
           >
             <span>Lanjut Semua</span>
             <span>⏩</span>
           </button>
 
-          <!-- Dropdown Courier Steps -->
-          <div class="relative group">
-            <button class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-3 py-2 rounded-xl text-xs">
-              Lanjut Kurir ▾
-            </button>
-            <div class="absolute bottom-full right-0 w-48 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 p-2 hidden group-hover:block z-50">
-              <div v-for="c in store.couriers" :key="c.id" class="p-1.5 flex items-center justify-between hover:bg-slate-50 rounded-lg">
-                <span class="text-xs font-bold" :style="{ color: c.color }">{{ c.name }}</span>
-                <button 
-                  @click="$emit('advance-courier', c.id)"
-                  :disabled="!store.courierStates[c.id] || store.courierStates[c.id].isFinished || store.isCalculating || isAnimating"
-                  class="bg-slate-900 disabled:opacity-30 text-white text-[10px] px-2 py-1 rounded font-bold"
-                >
-                  {{ store.courierStates[c.id]?.isFinished ? 'Selesai' : 'Lanjut' }}
-                </button>
-              </div>
-            </div>
-          </div>
-          <label class="flex items-center gap-2 whitespace-nowrap text-[10px] font-bold text-slate-300" @click.stop>
+          <label class="flex items-center gap-2 whitespace-nowrap text-xs font-bold text-slate-700" @click.stop>
             <span>Kecepatan</span>
             <input v-model.number="store.animationSpeed" type="range" min="0.5" max="5" step="0.5" class="w-20 accent-emerald-500">
             <span class="w-8 font-mono text-ink">{{ store.animationSpeed }}x</span>
@@ -526,7 +508,7 @@ defineProps({
   isAnimating: { type: Boolean, default: false }
 })
 
-defineEmits(['advance-courier', 'advance-all'])
+defineEmits(['advance-all'])
 
 const store = useAppStore()
 

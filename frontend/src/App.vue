@@ -61,7 +61,7 @@
     <AlgorithmExplorationPanel @start-evaluation="openEvaluationWindow" />
 
     <!-- Bottom Input & Controls Drawer -->
-    <DataDrawer :is-animating="isAnimating" @advance-courier="advanceCourier" @advance-all="advanceAllCouriers" />
+    <DataDrawer :is-animating="isAnimating" @advance-all="advanceAllCouriers" />
     </template>
 
   </div>
@@ -88,17 +88,6 @@ const evaluationData = ref(null)
 const evaluationError = ref('')
 const evaluationMethod = ref(null)
 const isEvaluationLoading = ref(false)
-
-async function advanceCourier(courierId) {
-  if (isAnimating.value) return
-  isAnimating.value = true
-  try {
-    const traveledCoordinates = await mapView.value.animateCourierStep(courierId)
-    await store.advanceCourierStep(courierId, traveledCoordinates)
-  } finally {
-    isAnimating.value = false
-  }
-}
 
 async function advanceAllCouriers() {
   if (isAnimating.value) return
