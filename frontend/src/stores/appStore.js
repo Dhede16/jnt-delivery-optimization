@@ -110,6 +110,12 @@ export const useAppStore = defineStore('app', {
     totalDistanceTraveledKm(state) {
       const meters = Object.values(state.courierStates).reduce((sum, cs) => sum + (cs.traveledM || 0), 0)
       return (meters / 1000).toFixed(2)
+    },
+    isSimulationFinished(state) {
+      if (!state.isRouteStarted || state.isCalculating) return false
+      if (state.packages.length === 0) return false
+      const states = Object.values(state.courierStates)
+      return states.length > 0 && states.every(cs => cs.isFinished || cs.remainingPackageIds.length === 0)
     }
   },
 
@@ -265,6 +271,12 @@ export const useAppStore = defineStore('app', {
         p.courier_id = null
         p.order = null
       })
+    },
+
+    async restartSimulation() {
+      if (this.isCalculating) return
+      this.resetRoutingStateOnly()
+      await this.calculateRoutes(true)
     },
 
     resetSession() {

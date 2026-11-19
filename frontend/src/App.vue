@@ -52,6 +52,35 @@
       <button @click="store.warningMessage = ''" class="ml-2 font-bold hover:text-amber-200">✕</button>
     </div>
 
+    <!-- Completion Notification Banner on Main Page -->
+    <div 
+      v-if="store.isSimulationFinished && showCompletionBanner"
+      class="fixed top-4 left-1/2 -translate-x-1/2 z-40 bg-white/95 text-slate-800 px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-4 border border-emerald-300 backdrop-blur-md"
+    >
+      <div class="flex items-center space-x-2.5">
+        <span class="text-xl">🎉</span>
+        <div>
+          <div class="text-xs font-bold text-emerald-800">Simulasi Selesai!</div>
+          <div class="text-[11px] text-slate-600">Semua paket telah berhasil diantar ke tujuan.</div>
+        </div>
+      </div>
+      <button 
+        @click="store.restartSimulation()"
+        :disabled="store.isCalculating || isAnimating"
+        class="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-xs font-extrabold px-3.5 py-2 rounded-xl shadow transition-all flex items-center space-x-1.5"
+      >
+        <span>Ulangi Simulasi</span>
+        <span>🔄</span>
+      </button>
+      <button 
+        @click="showCompletionBanner = false" 
+        class="text-slate-400 hover:text-slate-600 text-sm font-bold ml-1"
+        title="Tutup pemberitahuan"
+      >
+        ✕
+      </button>
+    </div>
+
     <!-- Main Interactive Map Area -->
     <main class="w-full h-full">
       <MapView ref="mapView" />
@@ -68,7 +97,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import { useAppStore } from './stores/appStore'
 import MapView from './components/MapView.vue'
 import AlgorithmExplorationPanel from './components/AlgorithmExplorationPanel.vue'
@@ -77,6 +106,13 @@ import DataDrawer from './components/DataDrawer.vue'
 const store = useAppStore()
 const mapView = ref(null)
 const isAnimating = ref(false)
+const showCompletionBanner = ref(false)
+
+watch(() => store.isSimulationFinished, (isFinished) => {
+  if (isFinished) {
+    showCompletionBanner.value = true
+  }
+})
 const isEvaluationWindow = new URLSearchParams(window.location.search).has('evaluation')
 const evaluationMethods = [
   { name: 'ACO' },

@@ -197,8 +197,8 @@ def run_comparisons(
             "method": "Ant Colony Optimization (ACO)",
             "total_distance_km": round(aco_tot_dist / 1000.0, 3),
             "execution_time_ms": round(total_aco_time_ms, 2),
-            "savings_vs_click_percent": round(max(saving_vs_orig, 0.0), 2),
-            "savings_vs_nn_percent": round(max(saving_vs_nn, 0.0), 2),
+            "savings_vs_click_percent": round(saving_vs_orig, 2),
+            "savings_vs_nn_percent": round(saving_vs_nn, 2),
             "note": "Rute teroptimasi global dengan feromon dan heuristik jarak",
             "routes": aco_routes
         },
@@ -206,7 +206,7 @@ def run_comparisons(
             "method": "Nearest Neighbor (NN Heuristik)",
             "total_distance_km": round(nn_tot_dist / 1000.0, 3),
             "execution_time_ms": 1.2,
-            "savings_vs_click_percent": round(max(((orig_tot_dist - nn_tot_dist) / orig_tot_dist * 100) if orig_tot_dist > 0 else 0.0, 0.0), 2),
+            "savings_vs_click_percent": round(((orig_tot_dist - nn_tot_dist) / orig_tot_dist * 100) if orig_tot_dist > 0 else 0.0, 2),
             "savings_vs_nn_percent": 0.0,
             "note": "Heuristik lokal rakus (greedy), sering terjebak optimum lokal",
             "routes": nn_routes
@@ -215,8 +215,8 @@ def run_comparisons(
             "method": "Dijkstra (Greedy Shortest Path)",
             "total_distance_km": round(dijkstra_tot_dist / 1000.0, 3),
             "execution_time_ms": round(total_dijkstra_time_ms, 2),
-            "savings_vs_click_percent": round(max(((orig_tot_dist - dijkstra_tot_dist) / orig_tot_dist * 100) if orig_tot_dist > 0 else 0.0, 0.0), 2),
-            "savings_vs_nn_percent": round(max(((nn_tot_dist - dijkstra_tot_dist) / nn_tot_dist * 100) if nn_tot_dist > 0 else 0.0, 0.0), 2),
+            "savings_vs_click_percent": round(((orig_tot_dist - dijkstra_tot_dist) / orig_tot_dist * 100) if orig_tot_dist > 0 else 0.0, 2),
+            "savings_vs_nn_percent": round(((nn_tot_dist - dijkstra_tot_dist) / nn_tot_dist * 100) if nn_tot_dist > 0 else 0.0, 2),
             "note": "Memilih paket terdekat berikutnya berdasarkan jarak terpendek Dijkstra",
             "routes": dijkstra_routes
         },

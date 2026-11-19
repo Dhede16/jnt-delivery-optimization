@@ -65,10 +65,27 @@
           <span v-if="!store.isCalculating">🚀</span>
         </button>
 
-        <!-- Action: Step Execution (Lanjut) -->
+        <!-- Action: Step Execution (Lanjut) & Repeat Simulation -->
         <div v-else-if="store.isRouteStarted" class="flex items-center space-x-2">
-          <!-- Advance Specific Courier or All -->
+          <!-- Simulation Finished Status & Repeat Button -->
+          <template v-if="store.isSimulationFinished">
+            <span class="hidden sm:inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-1.5 rounded-xl border border-emerald-300">
+              <span>🎉</span> Selesai
+            </span>
+            <button
+              @click="store.restartSimulation()"
+              :disabled="store.isCalculating || isAnimating"
+              class="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center space-x-1.5"
+              title="Ulangi simulasi rute dari awal"
+            >
+              <span>Ulangi Simulasi</span>
+              <span>🔄</span>
+            </button>
+          </template>
+
+          <!-- Advance Specific Courier or All (when not finished) -->
           <button
+            v-else
             @click="$emit('advance-all')"
             :disabled="!store.canAdvanceAny || store.isCalculating || isAnimating"
             class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-ink font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center space-x-1"
