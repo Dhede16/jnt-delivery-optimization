@@ -2,7 +2,7 @@
   <div class="app-shell relative w-screen h-screen overflow-hidden select-none">
     <template v-if="isEvaluationWindow">
       <MapView ref="mapView" evaluation-mode />
-      <div class="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-3 rounded-xl bg-white/95 p-3 shadow-xl">
+      <div class="absolute top-4 left-20 z-20 flex flex-wrap items-center gap-3 rounded-xl bg-white/95 p-3 shadow-xl">
         <strong class="text-sm text-slate-800">Simulasi {{ evaluationMethod?.name }}</strong>
         <span v-if="isEvaluationLoading" class="text-xs font-semibold text-indigo-700">Menghitung metode dan menyiapkan rute...</span>
         <label class="flex items-center gap-2 text-xs font-bold text-slate-700">
@@ -18,7 +18,7 @@
           {{ isAnimating ? 'Simulasi Berjalan...' : 'Ulangi Simulasi' }}
         </button>
       </div>
-      <div class="absolute bottom-4 left-4 z-20 rounded-xl bg-white/95 p-3 shadow-xl text-xs font-semibold text-slate-700 space-y-1">
+      <div class="absolute bottom-4 left-20 z-20 rounded-xl bg-white/95 p-3 shadow-xl text-xs font-semibold text-slate-700 space-y-1">
         <div v-if="evaluationMethod" class="font-bold">{{ evaluationMethod.name }}</div>
         <div
           v-for="courier in store.couriers.filter(item => evaluationData?.routing_comparison?.routes?.some(route => route.courier_id === item.id))"
@@ -31,6 +31,12 @@
       <div v-if="evaluationError" class="absolute bottom-4 right-4 z-20 max-w-lg rounded-xl bg-red-600 p-3 text-xs font-semibold text-white shadow-xl">
         {{ evaluationError }}
       </div>
+
+      <!-- Calculation Steps & Transparency Panel for Evaluation (Matches main page UI) -->
+      <EvaluationWorkflowPanel
+        :routing-comparison="evaluationData?.routing_comparison || {}"
+        :method-name="evaluationMethod?.name || evaluationData?.method || ''"
+      />
     </template>
     <template v-else>
     <!-- Top Alert Notifications -->
@@ -102,6 +108,7 @@ import { useAppStore } from './stores/appStore'
 import MapView from './components/MapView.vue'
 import AlgorithmExplorationPanel from './components/AlgorithmExplorationPanel.vue'
 import DataDrawer from './components/DataDrawer.vue'
+import EvaluationWorkflowPanel from './components/EvaluationWorkflowPanel.vue'
 
 const store = useAppStore()
 const mapView = ref(null)
@@ -151,7 +158,12 @@ function openEvaluationWindow(comparison) {
     knnParams: store.knnParams,
     acoParams: store.acoParams,
     method: comparison.method,
-    animationSpeed: store.animationSpeed
+    routing_comparison: comparison,
+    matrix: store.matrix,
+    pointIds: store.pointIds,
+    animationSpeed: store.animationSpeed,
+    knnSteps: store.knnSteps,
+    knnRebalanceLogs: store.knnRebalanceLogs
   }))
   const url = new URL(window.location.href)
   url.searchParams.set('evaluation', token)
@@ -184,7 +196,6 @@ onMounted(async () => {
       const token = new URLSearchParams(window.location.search).get('evaluation')
       const rawData = localStorage.getItem(`jnt-evaluation-${token}`)
       if (!rawData) throw new Error('Data simulasi tidak ditemukan. Buka simulasi dari halaman evaluasi utama.')
-      localStorage.removeItem(`jnt-evaluation-${token}`)
       evaluationData.value = JSON.parse(rawData)
       store.depot = evaluationData.value.depot
       store.packages = evaluationData.value.packages
@@ -192,6 +203,13 @@ onMounted(async () => {
       store.knnParams = evaluationData.value.knnParams
       store.acoParams = evaluationData.value.acoParams
       store.animationSpeed = evaluationData.value.animationSpeed || 1
+      if (evaluationData.value.matrix) store.matrix = evaluationData.value.matrix
+      if (evaluationData.value.pointIds) store.pointIds = evaluationData.value.pointIds
+      if (evaluationData.value.knnSteps) store.knnSteps = evaluationData.value.knnSteps
+      if (evaluationData.value.knnRebalanceLogs) store.knnRebalanceLogs = evaluationData.value.knnRebalanceLogs
+      if (evaluationData.value.routing_comparison) {
+        evaluationData.value.routing_comparison = evaluationData.value.routing_comparison
+      }
       evaluationMethod.value = evaluationMethods.find(method =>
         evaluationData.value.method.includes(method.name)
       )
@@ -199,13 +217,18 @@ onMounted(async () => {
       await nextTick()
       isEvaluationLoading.value = true
       const results = await store.runComparison()
-      if (!results) throw new Error(store.errorMessage || 'Evaluasi metode gagal dihitung.')
-      evaluationData.value.routing_comparison = results.routing_comparisons.find(
-        comparison => comparison.method === evaluationData.value.method
-      )
-      if (!evaluationData.value.routing_comparison) throw new Error('Hasil untuk metode ini tidak ditemukan.')
+      if (results && results.routing_comparisons) {
+        const found = results.routing_comparisons.find(
+          comparison => comparison.method === evaluationData.value.method
+        )
+        if (found) {
+          evaluationData.value.routing_comparison = found
+        }
+      }
       isEvaluationLoading.value = false
-      await startEvaluation(evaluationData.value.routing_comparison)
+      if (evaluationData.value.routing_comparison) {
+        await startEvaluation(evaluationData.value.routing_comparison)
+      }
     } catch (err) {
       evaluationError.value = err.message || 'Gagal memuat data simulasi.'
     } finally {

@@ -552,6 +552,15 @@ export const useAppStore = defineStore('app', {
           iterations: this.acoParams.iterations
         })
         this.comparisonData = res.data
+        if (res.data.knn_steps) {
+          this.knnSteps = res.data.knn_steps
+          if (this.knnSteps.length > 0 && !this.selectedStepPackageId) {
+            this.selectedStepPackageId = this.knnSteps[0].package_id
+          }
+        }
+        if (res.data.knn_rebalance_logs) {
+          this.knnRebalanceLogs = res.data.knn_rebalance_logs
+        }
         this.activeAlgoTab = 'compare'
         this.isLeftPanelExpanded = true
         return res.data

@@ -141,4 +141,6 @@ class CompareMethodResult(BaseModel):
 class CompareResponse(BaseModel):
     allocation_comparisons: List[CompareMethodResult]
     routing_comparisons: List[Dict[str, Any]]
+    knn_steps: Optional[List[KNNStepDetail]] = None
+    knn_rebalance_logs: Optional[List[str]] = None
 

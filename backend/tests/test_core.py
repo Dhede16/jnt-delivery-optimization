@@ -233,3 +233,8 @@ def test_comparison_includes_dijkstra_routes():
         {"courier_id": "c1", "courier_name": "Kurir 1", "package_ids": ["p1"]},
         {"courier_id": "c2", "courier_name": "Kurir 2", "package_ids": ["p2"]},
     ]
+    assert "c1" in dijkstra["steps_by_courier"]
+    assert len(dijkstra["steps_by_courier"]["c1"]) == 1
+    assert dijkstra["steps_by_courier"]["c1"][0]["to_id"] == "p1"
+    assert result.knn_steps is not None
+    assert len(result.knn_steps) == 2
