@@ -31,7 +31,7 @@ from schemas import (
 )
 
 app = FastAPI(
-    title="J&T Express Samarinda - KNN Multi-Courier & ACO Route Optimizer API",
+    title="SwiftRoute by J&T - KNN Multi-Courier & ACO Route Optimizer API",
     version="1.0.0"
 )
 

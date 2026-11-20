@@ -1,6 +1,8 @@
-# Sistem Alokasi Paket Multi-Kurir Berbasis KNN dan Optimasi Rute ACO pada J&T Express Samarinda
+# SwiftRoute by J&T — Sistem Alokasi Paket Multi-Kurir KNN & Optimasi Rute ACO
 
-Aplikasi web sistem pendukung keputusan logistik untuk mengalokasikan paket J&T Express Samarinda ke beberapa kurir dengan algoritma **K-Nearest Neighbors (KNN)**, kemudian menyusun urutan kunjungan optimal tiap kurir menggunakan **Ant Colony Optimization (ACO)** berbasis rute jalan sesungguhnya (Open TSP).
+> **Alokasi cerdas. Rute optimal. Pengiriman kilat.**
+
+**SwiftRoute by J&T** adalah sistem pendukung keputusan logistik berbasis web untuk J&T Express Samarinda yang mengotomatiskan alokasi paket ke kurir terdekat dengan algoritma **K-Nearest Neighbors (KNN)**, lalu menyusun urutan kunjungan optimal menggunakan **Ant Colony Optimization (ACO)** pada jaringan jalan sesungguhnya (OSRM) — mempersingkat waktu, menghemat bahan bakar, dan meningkatkan efisiensi kurir.
 
 ---
 

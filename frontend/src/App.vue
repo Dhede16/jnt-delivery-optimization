@@ -150,8 +150,8 @@ async function advanceAllCouriers() {
 
 function openEvaluationWindow(comparison) {
   if (!comparison?.routes?.length) return
-  const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`
-  localStorage.setItem(`jnt-evaluation-${token}`, JSON.stringify({
+const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+      localStorage.setItem(`swiftroute-evaluation-${token}`, JSON.stringify({
     depot: store.depot,
     packages: store.packages,
     couriers: store.couriers,
@@ -168,8 +168,8 @@ function openEvaluationWindow(comparison) {
   const url = new URL(window.location.href)
   url.searchParams.set('evaluation', token)
   const evaluationWindow = window.open(url.toString(), '_blank')
-  if (!evaluationWindow) {
-    localStorage.removeItem(`jnt-evaluation-${token}`)
+if (!evaluationWindow) {
+      localStorage.removeItem(`swiftroute-evaluation-${token}`)
     store.errorMessage = 'Browser memblokir tab baru. Izinkan pop-up lalu coba lagi.'
     return
   }
@@ -194,7 +194,7 @@ onMounted(async () => {
   if (isEvaluationWindow) {
     try {
       const token = new URLSearchParams(window.location.search).get('evaluation')
-      const rawData = localStorage.getItem(`jnt-evaluation-${token}`)
+      const rawData = localStorage.getItem(`swiftroute-evaluation-${token}`)
       if (!rawData) throw new Error('Data simulasi tidak ditemukan. Buka simulasi dari halaman evaluasi utama.')
       evaluationData.value = JSON.parse(rawData)
       store.depot = evaluationData.value.depot
