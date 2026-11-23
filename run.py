@@ -15,9 +15,9 @@ if __name__ == "__main__":
     print("  [>>] SwiftRoute by J&T - Sistem Alokasi Paket Multi-Kurir KNN & Optimasi Rute ACO")
     print("  [>>] J&T Express Samarinda")
     print("=" * 70)
-    print("  [==] Aplikasi dapat diakses di: http://localhost:8000")
-    print("  [==] Dokumentasi API Swagger : http://localhost:8000/docs")
+    print("  [==] Aplikasi dapat diakses di: http://localhost:8001")
+    print("  [==] Dokumentasi API Swagger : http://localhost:8001/docs")
     print("=" * 70)
 
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=False, app_dir=str(backend_dir))
+    uvicorn.run("main:app", host="127.0.0.1", port=8001, reload=False, app_dir=str(backend_dir))
 

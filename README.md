@@ -19,8 +19,8 @@ python -m pip install -r requirements.txt
 ```bash
 python run.py
 ```
-Akses antarmuka web di browser Anda: **[http://localhost:8000](http://localhost:8000)**  
-Dokumentasi interaktif OpenAPI / Swagger: **[http://localhost:8000/docs](http://localhost:8000/docs)**
+Akses antarmuka web di browser Anda: **[http://localhost:8001](http://localhost:8001)**
+Dokumentasi interaktif OpenAPI / Swagger: **[http://localhost:8001/docs](http://localhost:8001/docs)**
 
 ### 2. Menjalankan Pengujian Otomatis (Unit & Integration Tests)
 ```bash
