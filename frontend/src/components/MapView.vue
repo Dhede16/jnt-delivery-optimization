@@ -169,9 +169,13 @@ function renderDepot() {
     html: `
       <div style="position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
         <div class="pulse-ring"></div>
-        <div style="background: #ED1C24; color: white; border: 2px solid white; border-radius: 10px; width: 34px; height: 34px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(237,28,36,0.5);">
-          <span style="font-size: 10px; font-weight: 900; line-height: 1;">J&T</span>
-          <span style="font-size: 7px; font-weight: 700; text-transform: uppercase;">Depot</span>
+        <div style="background: #2563EB; color: white; border: 2px solid white; border-radius: 10px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(37,99,235,0.5);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/>
+            <path d="M6 18h12"/>
+            <path d="M6 14h12"/>
+            <rect width="12" height="12" x="6" y="10"/>
+          </svg>
         </div>
       </div>
     `,
@@ -182,7 +186,7 @@ function renderDepot() {
   L.marker([d.lat, d.lng], { icon: depotIcon })
     .bindPopup(`
       <div style="font-family: inherit; font-size: 12px; padding: 4px;">
-        <strong style="color: #ED1C24; font-size: 13px;">${d.name}</strong>
+        <strong style="color: #2563EB; font-size: 13px;">${d.name}</strong>
         <p style="margin: 4px 0 0; color: #475569;">Pusat Distribusi Utama J&T Samarinda</p>
         <p style="margin: 2px 0 0; font-size: 10px; color: #64748b;">${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}</p>
       </div>
