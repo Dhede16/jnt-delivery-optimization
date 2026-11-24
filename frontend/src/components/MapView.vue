@@ -23,22 +23,38 @@
 
     <div v-if="!evaluationMode" role="toolbar" aria-label="Kontrol peta" class="absolute right-4 top-1/2 z-20 -translate-y-1/2">
       <div class="flex flex-col gap-1 rounded-2xl border border-white/80 bg-white/90 p-1.5 shadow-xl backdrop-blur-md">
-        <button
-          type="button"
-          @click="inputMode = 'package'"
-          :aria-pressed="inputMode === 'package'"
-          aria-label="Tambah paket dengan klik peta"
-          title="Tambah Paket"
-          :disabled="store.isRouteStarted || store.isCalculating"
-          class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-          :class="inputMode === 'package' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-primary-soft hover:text-primary'"
-        >
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
-            <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" />
-            <path d="m4.3 7.6 7.7 4.5 7.7-4.5M12 21v-9" />
-            <path d="M16.5 12.5h5m-2.5-2.5v5" />
-          </svg>
-        </button>
+        <div class="relative h-11 w-11">
+          <button
+            type="button"
+            @click="inputMode = 'package'"
+            :aria-pressed="inputMode === 'package'"
+            aria-label="Tambah paket dengan klik peta"
+            title="Tambah Paket"
+            :disabled="store.isRouteStarted || store.isCalculating"
+            class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            :class="inputMode === 'package' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-primary-soft hover:text-primary'"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+              <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" />
+              <path d="m4.3 7.6 7.7 4.5 7.7-4.5M12 21v-9" />
+              <path d="M16.5 12.5h5m-2.5-2.5v5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            @click="toggleAddressSearch"
+            :aria-expanded="isAddressSearchOpen"
+            aria-label="Tambah paket dengan mencari alamat"
+            title="Cari alamat paket"
+            :disabled="store.isRouteStarted || store.isCalculating"
+            class="!absolute !bottom-0 !right-0 !z-10 !h-5 !min-h-0 !w-5 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-primary-soft hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-3 w-3">
+              <circle cx="10.5" cy="10.5" r="6.5" />
+              <path d="m16 16 4 4" />
+            </svg>
+          </button>
+        </div>
         <div class="relative h-11 w-11">
             <button
               type="button"
@@ -93,6 +109,40 @@
             <path d="M5 12h14" />
           </svg>
         </button>
+      </div>
+
+      <div v-if="isAddressSearchOpen" role="search" aria-label="Cari alamat paket" class="absolute right-full top-0 mr-2 w-72 overflow-hidden rounded-2xl border border-white/80 bg-white/95 p-3 shadow-xl backdrop-blur-md">
+        <h2 class="mb-2 text-xs font-extrabold text-slate-700">Tambah Paket dari Alamat</h2>
+        <input
+          v-model="addressQuery"
+          type="search"
+          autocomplete="off"
+          aria-label="Cari alamat"
+          placeholder="Ketik alamat atau nama tempat…"
+          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+        >
+        <div class="mt-2 max-h-60 space-y-1 overflow-y-auto">
+          <p v-if="addressQuery.trim().length < 3" class="px-2 py-2 text-[11px] text-slate-500">Ketik minimal 3 karakter untuk mencari.</p>
+          <p v-else-if="isSearchingAddresses" role="status" class="px-2 py-2 text-[11px] text-slate-500">Mencari alamat…</p>
+          <p v-else-if="addressSearchError" role="alert" class="px-2 py-2 text-[11px] text-red-600">{{ addressSearchError }}</p>
+          <p v-else-if="addressSuggestions.length === 0" class="px-2 py-2 text-[11px] text-slate-500">Tidak ada saran alamat.</p>
+          <button
+            v-for="(feature, index) in addressSuggestions"
+            :key="`${feature.properties?.osm_type}-${feature.properties?.osm_id}-${index}`"
+            type="button"
+            @click="addPackageFromAddress(feature)"
+            :disabled="!store.canStartPackageInput || store.isRouteStarted || store.isCalculating || store.packages.length >= 50 || isAddingAddress"
+            class="block w-full rounded-xl px-2.5 py-2 text-left text-xs text-slate-700 transition-colors hover:bg-primary-soft disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <span class="block font-semibold">{{ formatAddress(feature.properties) }}</span>
+            <span class="mt-0.5 block text-[10px] text-slate-500">
+              {{ feature.geometry.coordinates[1].toFixed(5) }}, {{ feature.geometry.coordinates[0].toFixed(5) }}
+            </span>
+          </button>
+          <p v-if="!store.canStartPackageInput" class="px-2 py-2 text-[11px] text-amber-700">Tambahkan kurir dan titik acuan sebelum menambah paket.</p>
+          <p v-else-if="store.packages.length >= 50" class="px-2 py-2 text-[11px] text-amber-700">Batas 50 paket sudah tercapai.</p>
+        </div>
+        <p class="mt-2 border-t border-slate-100 pt-2 text-[10px] text-slate-400">Saran alamat menggunakan Photon.</p>
       </div>
 
       <div v-if="isCourierPickerOpen" class="absolute right-full top-1/2 mr-2 max-h-[70vh] w-52 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/80 bg-white/95 p-2 shadow-xl backdrop-blur-md">
@@ -170,6 +220,12 @@ const props = defineProps({
 const mapContainer = ref(null)
 const inputMode = ref('reference')
 const isCourierPickerOpen = ref(false)
+const isAddressSearchOpen = ref(false)
+const addressQuery = ref('')
+const addressSuggestions = ref([])
+const addressSearchError = ref('')
+const isSearchingAddresses = ref(false)
+const isAddingAddress = ref(false)
 const evaluationMethods = [
   { name: 'ACO' },
   { name: 'Nearest Neighbor' },
@@ -182,6 +238,96 @@ function selectCourier(courierId) {
   store.setActiveCourier(courierId)
   inputMode.value = 'reference'
   isCourierPickerOpen.value = false
+  isAddressSearchOpen.value = false
+  addressQuery.value = ''
+}
+
+function toggleAddressSearch() {
+  isAddressSearchOpen.value = !isAddressSearchOpen.value
+  isCourierPickerOpen.value = false
+  inputMode.value = 'package'
+  if (!isAddressSearchOpen.value) addressQuery.value = ''
+}
+
+function formatAddress(properties = {}) {
+  const street = [properties?.housenumber, properties?.street].filter(Boolean).join(' ')
+  return [
+    properties?.name,
+    street,
+    properties?.district,
+    properties?.city,
+    properties?.state,
+    properties?.country
+  ].filter((part, index, parts) => part && parts.indexOf(part) === index).join(', ')
+}
+
+watch(addressQuery, (value, _, onCleanup) => {
+  const query = value.trim()
+  addressSuggestions.value = []
+  addressSearchError.value = ''
+  if (query.length < 3) {
+    isSearchingAddresses.value = false
+    return
+  }
+
+  isSearchingAddresses.value = true
+  const controller = new AbortController()
+  const timeout = setTimeout(async () => {
+    try {
+      const response = await axios.get('https://photon.komoot.io/api/', {
+        params: {
+          q: query,
+          lat: store.depot.lat,
+          lon: store.depot.lng,
+          limit: 5
+        },
+        signal: controller.signal
+      })
+      addressSuggestions.value = (Array.isArray(response.data.features) ? response.data.features : [])
+        .filter(feature => {
+          const [lng, lat] = feature.geometry?.coordinates || []
+          return Number.isFinite(lat) && Number.isFinite(lng) && Boolean(formatAddress(feature.properties))
+        })
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        console.error('Address search failed:', error)
+        addressSearchError.value = 'Pencarian alamat gagal. Coba lagi.'
+      }
+    } finally {
+      if (!controller.signal.aborted) isSearchingAddresses.value = false
+    }
+  }, 350)
+
+  onCleanup(() => {
+    clearTimeout(timeout)
+    controller.abort()
+    isSearchingAddresses.value = false
+  })
+})
+
+async function addPackageFromAddress(feature) {
+  if (isAddingAddress.value) return
+  const [lng, lat] = feature.geometry?.coordinates || []
+  const name = formatAddress(feature.properties)
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || !name) {
+    addressSearchError.value = 'Data alamat tidak valid. Pilih saran lain.'
+    return
+  }
+
+  const packageCount = store.packages.length
+  isAddingAddress.value = true
+  try {
+    await store.addPackage(lat, lng, name)
+    if (store.packages.length > packageCount) {
+      map?.setView([lat, lng], Math.max(map.getZoom(), 15))
+      isAddressSearchOpen.value = false
+      addressQuery.value = ''
+    } else if (store.errorMessage) {
+      addressSearchError.value = store.errorMessage
+    }
+  } finally {
+    isAddingAddress.value = false
+  }
 }
 
 // Layers
@@ -364,7 +510,7 @@ function renderPackages() {
     const marker = L.marker([pkg.lat, pkg.lng], { icon })
       .bindPopup(`
         <div style="font-size: 12px; padding: 2px;">
-          <div style="font-weight: bold; color: ${color};">${pkg.name || pkg.id}</div>
+          <div style="font-weight: bold; color: ${color};">${escapeHtml(pkg.name || pkg.id)}</div>
           <div style="font-size: 11px; color: #475569; margin-top: 2px;">
             Kurir: <strong>${courier ? courier.name : 'Belum dialokasikan'}</strong>
           </div>
@@ -379,6 +525,16 @@ function renderPackages() {
       `)
     marker.addTo(packagesLayer)
   })
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[character])
 }
 
 function renderRoutes() {

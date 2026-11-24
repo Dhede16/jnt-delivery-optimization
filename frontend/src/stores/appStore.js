@@ -222,7 +222,7 @@ export const useAppStore = defineStore('app', {
       await this.refreshPackageAllocation()
     },
 
-    async addPackage(lat, lng) {
+    async addPackage(lat, lng, name = '') {
       if (this.isRouteStarted || this.isCalculating) return
       if (!this.canStartPackageInput) {
         this.errorMessage = 'Tambahkan kurir dan minimal satu titik acuan untuk setiap kurir sebelum menambahkan paket.'
@@ -237,7 +237,7 @@ export const useAppStore = defineStore('app', {
 
       this.packages.push({
         id: `P-${crypto.randomUUID()}`,
-        name: `Paket #${this.packages.length + 1}`,
+        name: name || `Paket #${this.packages.length + 1}`,
         lat: Number(lat.toFixed(5)),
         lng: Number(lng.toFixed(5))
       })

@@ -56,9 +56,6 @@
         <div v-else-if="store.isRouteStarted" class="flex items-center space-x-2">
           <!-- Simulation Finished Status & Repeat Button -->
           <template v-if="store.isSimulationFinished">
-            <span class="hidden sm:inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-1.5 rounded-xl border border-emerald-300">
-              <span>🎉</span> Selesai
-            </span>
             <button
               @click="store.restartSimulation()"
               :disabled="store.isCalculating || isAnimating"
@@ -173,7 +170,7 @@
           <!-- Package List Table -->
           <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center text-xs">
-              <span class="font-bold text-slate-700">Daftar Titik Paket J&T (Total: {{ store.packages.length }})</span>
+              <span class="font-bold text-slate-700">Daftar Titik Paket (Total: {{ store.packages.length }})</span>
               <span class="text-slate-500 font-medium">Batas teknis: Maksimal 50 paket</span>
             </div>
 
@@ -316,7 +313,7 @@
         <div v-else-if="store.bottomDrawerTab === 'history'" class="space-y-4">
           <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center text-xs">
-              <span class="font-bold text-slate-700">Riwayat Rute Perjalanan Kurir (FR-13)</span>
+              <span class="font-bold text-slate-700">Riwayat Rute Perjalanan Kurir</span>
               <span class="text-slate-500 font-medium">Langkah yang sudah ditempuh secara kronologis</span>
             </div>
 
