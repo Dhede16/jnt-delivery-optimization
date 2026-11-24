@@ -8,13 +8,73 @@
         <span class="w-3 h-3 rounded-full animate-pulse bg-amber-500"></span>
         <span class="text-xs font-semibold text-slate-700">
           Klik Peta: 
-          <span class="text-amber-600 font-bold">Tambah Titik Acuan ({{ store.activeCourier?.name || 'Pilih Kurir' }})</span>
+          <span class="font-bold" :class="inputMode === 'package' ? 'text-primary' : 'text-amber-600'">
+            {{ inputMode === 'package' ? 'Tambah Paket' : `Tambah Titik Acuan (${store.activeCourier?.name || 'Pilih Kurir'})` }}
+          </span>
         </span>
       </div>
       <div class="h-4 w-px bg-slate-300"></div>
       <span class="text-[11px] text-slate-500">
         {{ store.isCalculating ? 'Alokasi KNN & rute adaptif sedang dihitung…' : store.isRouteStarted ? '🔒 Simulasi aktif' : 'Klik di peta wilayah Samarinda' }}
       </span>
+    </div>
+
+    <div v-if="!evaluationMode" role="toolbar" aria-label="Kontrol peta" class="absolute right-4 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-1 rounded-2xl border border-white/80 bg-white/90 p-1.5 shadow-xl backdrop-blur-md">
+      <button
+        type="button"
+        @click="inputMode = 'package'"
+        :aria-pressed="inputMode === 'package'"
+        aria-label="Tambah paket dengan klik peta"
+        title="Tambah Paket"
+        :disabled="store.isRouteStarted || store.isCalculating"
+        class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+        :class="inputMode === 'package' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-primary-soft hover:text-primary'"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+          <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" />
+          <path d="m4.3 7.6 7.7 4.5 7.7-4.5M12 21v-9" />
+          <path d="M16.5 12.5h5m-2.5-2.5v5" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        @click="inputMode = 'reference'"
+        :aria-pressed="inputMode === 'reference'"
+        aria-label="Tambah titik acuan untuk kurir terpilih dengan klik peta"
+        :title="`Titik Acuan${store.activeCourier ? ` — ${store.activeCourier.name}` : ''}`"
+        :disabled="store.isRouteStarted || store.isCalculating"
+        class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+        :class="inputMode === 'reference' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-primary-soft hover:text-primary'"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+          <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+          <circle cx="12" cy="10" r="2.5" />
+          <path d="M18 3v4m-2-2h4" />
+        </svg>
+      </button>
+      <div class="mx-1 my-0.5 h-px bg-slate-200"></div>
+      <button
+        type="button"
+        @click="map?.zoomIn()"
+        aria-label="Perbesar peta"
+        title="Zoom In"
+        class="flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-primary-soft hover:text-primary"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        @click="map?.zoomOut()"
+        aria-label="Perkecil peta"
+        title="Zoom Out"
+        class="flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-primary-soft hover:text-primary"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5">
+          <path d="M5 12h14" />
+        </svg>
+      </button>
     </div>
 
     <!-- Quick Metrics (Paket & Kurir) Pojok Kanan Atas -->
@@ -56,6 +116,7 @@ const props = defineProps({
   evaluationMode: { type: Boolean, default: false }
 })
 const mapContainer = ref(null)
+const inputMode = ref('reference')
 const evaluationMethods = [
   { name: 'ACO' },
   { name: 'Nearest Neighbor' },
@@ -86,8 +147,7 @@ function initMap() {
     zoomControl: false
   }).setView([store.depot.lat, store.depot.lng], 13)
 
-  // Zoom control top right
-  L.control.zoom({ position: 'topright' }).addTo(map)
+  if (props.evaluationMode) L.control.zoom({ position: 'topright' }).addTo(map)
 
   // OpenStreetMap Tile Layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -109,6 +169,10 @@ function initMap() {
     if (store.isRouteStarted || store.isCalculating) return
     const { lat, lng } = e.latlng
 
+    if (inputMode.value === 'package') {
+      store.addPackage(lat, lng)
+      return
+    }
     if (!store.activeCourierId) {
       store.errorMessage = 'Tambahkan dan pilih kurir di tab Kelola Kurir sebelum menambahkan titik acuan.'
       store.bottomDrawerTab = 'couriers'

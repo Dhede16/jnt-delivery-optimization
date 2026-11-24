@@ -222,6 +222,28 @@ export const useAppStore = defineStore('app', {
       await this.refreshPackageAllocation()
     },
 
+    async addPackage(lat, lng) {
+      if (this.isRouteStarted || this.isCalculating) return
+      if (!this.canStartPackageInput) {
+        this.errorMessage = 'Tambahkan kurir dan minimal satu titik acuan untuk setiap kurir sebelum menambahkan paket.'
+        this.bottomDrawerTab = 'couriers'
+        this.isBottomDrawerOpen = true
+        return
+      }
+      if (this.packages.length >= 50) {
+        this.errorMessage = 'Maksimal 50 paket diperbolehkan.'
+        return
+      }
+
+      this.packages.push({
+        id: `P-${crypto.randomUUID()}`,
+        name: `Paket #${this.packages.length + 1}`,
+        lat: Number(lat.toFixed(5)),
+        lng: Number(lng.toFixed(5))
+      })
+      await this.refreshPackageAllocation()
+    },
+
     async removePackage(pkgId) {
       if (this.isRouteStarted || this.isCalculating) return
       this.packages = this.packages.filter(p => p.id !== pkgId)
