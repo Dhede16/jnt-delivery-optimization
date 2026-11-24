@@ -39,6 +39,20 @@ npm run dev
 ```
 Akses Vite di: **http://localhost:5173**
 
+## ☁️ Deploy ke Vercel
+
+Konfigurasi Vercel sudah disiapkan di `vercel.json`; frontend dibangun sebagai situs statis dan API berjalan sebagai Python Function.
+
+**Catatan paket:** Vercel Hobby gratis hanya untuk penggunaan personal/non-komersial. Gunakan Hobby untuk demo personal/akademik; jika aplikasi dipakai untuk operasional atau kepentingan bisnis J&T, gunakan paket berbayar yang sesuai dengan [ketentuan Vercel](https://vercel.com/legal/terms#4-hobby-plan).
+
+1. Push repository ini ke GitHub.
+2. Di [vercel.com/new](https://vercel.com/new), impor repository tersebut.
+3. Pastikan **Root Directory** adalah root repository (`./`), bukan `frontend`.
+4. Pilih paket Vercel yang sesuai dengan tujuan penggunaan dan deploy. Build command dan output directory sudah diatur di `vercel.json`.
+5. Setelah berhasil, buka URL deployment. Tes API melalui `/api/config` dan `/api/scenarios`.
+
+Untuk deploy selanjutnya, push perubahan ke branch GitHub yang terhubung; Vercel akan membangun ulang otomatis. API menggunakan layanan OSRM publik untuk jarak jalan, jadi ketersediaan dan batas pemakaiannya mengikuti layanan tersebut.
+
 ---
 
 ## 🎨 Fitur Antarmuka & Sesuai Kebutuhan Spesifik
