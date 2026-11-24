@@ -234,7 +234,7 @@
         <!-- =================== TAB 2: COURIERS =================== -->
         <div v-else-if="store.bottomDrawerTab === 'couriers'" class="space-y-4">
           <div class="flex items-center justify-between gap-3">
-            <p class="text-xs text-slate-500">Daftar kurir dan titik acuannya. Hapus titik acuan yang tidak diperlukan.</p>
+            <p class="text-xs text-slate-500">Ubah nama/warna kurir, lihat titik acuannya, atau hapus titik acuan.</p>
             <button
               type="button"
               @click="store.addCourier()"
@@ -257,9 +257,31 @@
               :class="store.activeCourierId === c.id ? 'border-primary ring-2 ring-primary-soft' : 'border-slate-200'"
             >
               <div class="mb-3 flex items-center gap-2">
-                <span class="h-3 w-3 rounded-full" :style="{ backgroundColor: c.color }"></span>
-                <span class="text-xs font-bold text-slate-800">{{ c.name }}</span>
+                <input
+                  v-model="c.color"
+                  type="color"
+                  :aria-label="`Warna ${c.name}`"
+                  :disabled="store.isRouteStarted || store.isCalculating"
+                  class="h-6 w-6 shrink-0 cursor-pointer rounded border-0 bg-transparent p-0 disabled:cursor-not-allowed"
+                />
+                <input
+                  v-model="c.name"
+                  type="text"
+                  aria-label="Nama kurir"
+                  :disabled="store.isRouteStarted || store.isCalculating"
+                  class="min-w-0 flex-1 border-b border-transparent bg-transparent px-1 text-xs font-bold text-slate-800 outline-none focus:border-slate-300 disabled:cursor-not-allowed"
+                />
                 <span v-if="store.activeCourierId === c.id" class="ml-auto rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-bold text-primary">Dipilih</span>
+                <button
+                  type="button"
+                  @click="store.removeCourier(c.id)"
+                  :disabled="store.isRouteStarted || store.isCalculating"
+                  :aria-label="`Hapus ${c.name} beserta titik acuannya`"
+                  title="Hapus kurir dan titik acuannya"
+                  class="rounded-lg px-2 py-1 text-xs font-bold text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  ×
+                </button>
               </div>
 
               <!-- Ref Points Info -->
