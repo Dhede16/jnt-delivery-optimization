@@ -289,13 +289,23 @@
               :class="store.activeCourierId === c.id ? 'border-primary ring-2 ring-primary-soft' : 'border-slate-200'"
             >
               <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1.5">
                   <input 
                     type="color" 
                     v-model="c.color" 
                     :disabled="store.isRouteStarted || store.isCalculating"
                     class="w-6 h-6 rounded border-0 cursor-pointer" 
+                    title="Pilih Warna Kurir"
                   />
+                  <button
+                    v-if="!store.isRouteStarted"
+                    @click="store.randomizeCourierColor(c.id)"
+                    type="button"
+                    class="px-1.5 py-0.5 text-xs rounded hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors"
+                    title="Acak Warna Kurir Ini"
+                  >
+                    🎲
+                  </button>
                   <input 
                     type="text" 
                     v-model="c.name" 

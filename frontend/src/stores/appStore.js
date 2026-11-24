@@ -2,18 +2,30 @@ import { defineStore } from 'pinia'
 import { nextTick } from 'vue'
 import axios from 'axios'
 
-const DEFAULT_COLORS = [
-  '#2563EB', // Royal Blue (Primary)
-  '#0284C7', // Deep Cyan / Sky
-  '#4F46E5', // Indigo
-  '#0EA5E9', // Ocean Blue
-  '#1D4ED8', // Sapphire
-  '#059669', // Emerald Green
+const VIBRANT_COURIER_COLORS = [
+  '#EA580C', // Orange
+  '#16A34A', // Green
+  '#9333EA', // Purple
+  '#E11D48', // Crimson Rose
   '#D97706', // Amber
-  '#7C3AED', // Purple
-  '#DB2777', // Rose Pink
-  '#475569'  // Slate
+  '#0891B2', // Cyan
+  '#EC4899', // Pink
+  '#65A30D', // Lime
+  '#7C3AED', // Violet
+  '#059669', // Emerald
+  '#DC2626', // Red
+  '#F97316'  // Bright Orange
 ]
+
+function getRandomCourierColor(existingCouriers = []) {
+  const used = new Set(existingCouriers.map(c => c.color?.toLowerCase()))
+  const available = VIBRANT_COURIER_COLORS.filter(c => !used.has(c.toLowerCase()))
+  if (available.length > 0) {
+    return available[Math.floor(Math.random() * available.length)]
+  }
+  const hue = Math.floor(Math.random() * 360)
+  return `hsl(${hue}, 80%, 45%)`
+}
 
 export const useAppStore = defineStore('app', {
   state: () => ({
@@ -171,13 +183,20 @@ export const useAppStore = defineStore('app', {
       const newCourier = {
         id,
         name: name || `Kurir ${String.fromCharCode(65 + idx)}`,
-        color: DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
+        color: getRandomCourierColor(this.couriers),
         ref_points: []
       }
       this.couriers.push(newCourier)
       this.activeCourierId = id
       this.clickMode = 'ref_point'
       await this.refreshPackageAllocation()
+    },
+
+    randomizeCourierColor(courierId) {
+      if (this.isRouteStarted) return
+      const courier = this.couriers.find(c => c.id === courierId)
+      if (!courier) return
+      courier.color = getRandomCourierColor(this.couriers.filter(c => c.id !== courierId))
     },
 
     async removeCourier(courierId) {
