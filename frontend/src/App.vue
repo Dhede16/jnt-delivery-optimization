@@ -92,9 +92,6 @@
       <MapView ref="mapView" />
     </main>
 
-    <!-- Left Algorithm & Step-by-Step Transparency Panel -->
-    <AlgorithmExplorationPanel @start-evaluation="openEvaluationWindow" />
-
     <!-- Bottom Input & Controls Drawer -->
     <DataDrawer :is-animating="isAnimating" @advance-all="advanceAllCouriers" />
     </template>
@@ -106,7 +103,6 @@
 import { nextTick, onMounted, ref, watch } from 'vue'
 import { useAppStore } from './stores/appStore'
 import MapView from './components/MapView.vue'
-import AlgorithmExplorationPanel from './components/AlgorithmExplorationPanel.vue'
 import DataDrawer from './components/DataDrawer.vue'
 import EvaluationWorkflowPanel from './components/EvaluationWorkflowPanel.vue'
 

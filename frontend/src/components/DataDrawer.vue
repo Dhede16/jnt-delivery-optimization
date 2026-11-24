@@ -121,7 +121,7 @@
         <button 
           @click="store.bottomDrawerTab = 'packages'; store.clickMode = 'package'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
-          :class="store.bottomDrawerTab === 'packages' ? 'border-red-600 text-red-600 bg-red-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
+          :class="store.bottomDrawerTab === 'packages' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
           <span>Input Paket & Skenario</span>
           <span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] text-slate-600 font-mono">{{ store.packages.length }}/50</span>
@@ -130,7 +130,7 @@
         <button 
           @click="store.bottomDrawerTab = 'couriers'; store.clickMode = 'ref_point'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
-          :class="store.bottomDrawerTab === 'couriers' ? 'border-red-600 text-red-600 bg-red-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
+          :class="store.bottomDrawerTab === 'couriers' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
           <span>Kelola Kurir & Titik Acuan</span>
           <span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] text-slate-600 font-mono">{{ store.couriers.length }}/10</span>
@@ -139,7 +139,7 @@
         <button 
           @click="store.bottomDrawerTab = 'params'; store.clickMode = 'package'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
-          :class="store.bottomDrawerTab === 'params' ? 'border-red-600 text-red-600 bg-red-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
+          :class="store.bottomDrawerTab === 'params' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
           <span>Parameter Model</span>
         </button>
@@ -147,7 +147,7 @@
         <button 
           @click="store.bottomDrawerTab = 'history'; store.clickMode = 'package'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
-          :class="store.bottomDrawerTab === 'history' ? 'border-red-600 text-red-600 bg-red-50/50' : 'border-transparent text-slate-500 hover:text-slate-800'"
+          :class="store.bottomDrawerTab === 'history' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
           <span>Riwayat Rute</span>
           <span v-if="store.stepHistory.length > 0" class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-mono">
@@ -286,7 +286,7 @@
               v-for="c in store.couriers" 
               :key="c.id"
               class="bg-white border rounded-2xl p-4 shadow-sm transition-all"
-              :class="store.activeCourierId === c.id ? 'border-red-500 ring-2 ring-red-100' : 'border-slate-200'"
+              :class="store.activeCourierId === c.id ? 'border-primary ring-2 ring-primary-soft' : 'border-slate-200'"
             >
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center space-x-2">
@@ -307,7 +307,7 @@
                 <button 
                   v-if="store.couriers.length > 1 && !store.isRouteStarted"
                   @click="store.removeCourier(c.id)"
-                  class="text-red-400 hover:text-red-600 text-xs font-bold"
+                  class="text-slate-400 hover:text-red-500 text-xs font-bold"
                   title="Hapus Kurir"
                 >
                   ✕
@@ -338,13 +338,28 @@
                 </div>
               </div>
 
+              <!-- Adaptive Algorithm Info Badge -->
+              <div v-if="store.courierStates[c.id]?.algorithmUsed" class="mt-2.5 bg-blue-50 border border-blue-200 rounded-xl p-2 text-[11px] text-blue-900 flex flex-col gap-0.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-extrabold text-blue-700 flex items-center gap-1">
+                    <span>⚡</span> {{ store.courierStates[c.id].algorithmUsed }}
+                  </span>
+                  <span class="font-mono text-slate-600 text-[10px]">
+                    {{ store.courierStates[c.id].remainingPackageIds?.length }} sisa paket
+                  </span>
+                </div>
+                <span class="text-[10px] text-slate-500 leading-tight">
+                  {{ store.courierStates[c.id].reasoning }}
+                </span>
+              </div>
+
               <!-- Set Active Button -->
               <button 
                 @click="store.activeCourierId = c.id; store.clickMode = 'ref_point'"
                 :disabled="store.isRouteStarted || store.isCalculating"
                 class="mt-3 w-full py-1.5 rounded-xl text-xs font-bold transition-all border"
                 :class="store.activeCourierId === c.id 
-                  ? 'bg-amber-500 text-white border-amber-600 shadow' 
+                  ? 'bg-primary text-white border-primary shadow' 
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'"
               >
                 {{ store.activeCourierId === c.id ? 'Sedang Dipilih (Klik Peta untuk Acuan)' : 'Pilih Kurir untuk Set Acuan' }}
@@ -388,16 +403,41 @@
                   type="checkbox" 
                   v-model="store.knnParams.balanceLoad"
                   :disabled="store.isRouteStarted"
-                  class="w-5 h-5 accent-red-600 cursor-pointer rounded"
+                  class="w-5 h-5 accent-primary cursor-pointer rounded"
                 />
               </div>
             </div>
 
-            <!-- ACO Parameters -->
+            <!-- ACO & Adaptive Routing Parameters -->
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
               <h4 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                <span>Parameter Ant Colony Optimization (ACO)</span>
+                <span>Adaptive Routing & Parameter ACO</span>
               </h4>
+
+              <!-- Adaptive Routing Info Banner -->
+              <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3 text-xs space-y-1.5">
+                <div class="font-bold text-blue-900 flex items-center gap-1.5">
+                  <span>🧠</span> Penentu Arah Cerdas Otomatis
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-700">
+                  <div class="bg-white/80 p-1.5 rounded-lg border border-blue-100">
+                    <span class="font-bold text-blue-700 block">N = 1</span>
+                    <span>Direct Hop ($O(1)$ instan)</span>
+                  </div>
+                  <div class="bg-white/80 p-1.5 rounded-lg border border-blue-100">
+                    <span class="font-bold text-blue-700 block">2 &le; N &le; 7</span>
+                    <span>Exact Optimal (100% mutlak)</span>
+                  </div>
+                  <div class="bg-white/80 p-1.5 rounded-lg border border-blue-100">
+                    <span class="font-bold text-blue-700 block">8 &le; N &le; 14</span>
+                    <span>Nearest Neighbor (&lt;1ms cepat)</span>
+                  </div>
+                  <div class="bg-white/80 p-1.5 rounded-lg border border-blue-100">
+                    <span class="font-bold text-blue-700 block">N &ge; 15</span>
+                    <span>ACO (Optimasi Global)</span>
+                  </div>
+                </div>
+              </div>
 
               <div class="grid grid-cols-2 gap-4 text-xs">
                 <div>

@@ -8,23 +8,20 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#3366FF',
-          dark: '#2B4FD8',
-          soft: '#E8EEFB'
+          DEFAULT: '#2563EB',
+          dark: '#1D4ED8',
+          soft: '#EFF6FF',
+          navy: '#0B192C',
+          ocean: '#1E3E62',
+          ice: '#DBEAFE'
         },
-        accent: '#00C9A7',
+        accent: '#0284C7',
         canvas: '#F5F7FB',
         ink: {
-          DEFAULT: '#2B3A67',
-          muted: '#8A94A8'
+          DEFAULT: '#0B192C',
+          muted: '#64748B'
         },
-        line: '#E3E8F2',
-        jnt: {
-          red: '#ED1C24',
-          darkRed: '#C81017',
-          lightRed: '#FEE2E2',
-          black: '#1F2937'
-        }
+        line: '#E2E8F0'
       }
     },
     fontFamily: {

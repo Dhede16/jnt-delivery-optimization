@@ -71,6 +71,8 @@ def test_allocate_and_optimize_endpoints(monkeypatch):
     opt_data = opt_res.json()
     assert len(opt_data["tour"]) == len(c1_pkgs)
     assert opt_data["total_distance_m"] > 0
+    assert "algorithm_used" in opt_data
+    assert "reasoning" in opt_data
 
 
 def test_allocate_returns_service_unavailable_when_osrm_fails(monkeypatch):

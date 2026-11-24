@@ -91,17 +91,20 @@ class OptimizeRequest(BaseModel):
     q: float = 100.0
     n_ants: Optional[int] = None
     iterations: int = 100
+    adaptive: bool = True
 
 
 class OptimizeResponse(BaseModel):
     courier_id: Optional[str] = None
     tour: List[str]
     total_distance_m: float
-    iterations_log: List[ACOIterationLog]
-    convergence: List[float]
-    execution_time_ms: float
-    nn_distance_m: float
-    original_order_distance_m: float
+    iterations_log: List[ACOIterationLog] = Field(default_factory=list)
+    convergence: List[float] = Field(default_factory=list)
+    execution_time_ms: float = 0.0
+    nn_distance_m: float = 0.0
+    original_order_distance_m: float = 0.0
+    algorithm_used: str = "Ant Colony Optimization"
+    reasoning: str = ""
 
 
 class GeometryRequest(BaseModel):

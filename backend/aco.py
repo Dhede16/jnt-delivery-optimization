@@ -104,7 +104,15 @@ def brute_force_best_tour(
     return best_perm, best_dist
 
 
-def solve_open_tsp_aco(req: OptimizeRequest) -> OptimizeResponse:
+def solve_adaptive_tour(req: OptimizeRequest) -> OptimizeResponse:
+    """
+    Menentukan rute terbaik secara adaptif berdasarkan jumlah paket (N):
+    - N = 0: Direct (kosong)
+    - N = 1: Direct Hop
+    - 2 <= N <= 7: Exact Brute Force Permutation (100% Global Optimum)
+    - 8 <= N <= 14: Nearest Neighbor (Greedy TSP, < 1ms)
+    - N >= 15: Ant Colony Optimization (Metaheuristik Global)
+    """
     start_time = time.perf_counter()
 
     # Index mapping
@@ -114,33 +122,39 @@ def solve_open_tsp_aco(req: OptimizeRequest) -> OptimizeResponse:
 
     start_idx = id_to_idx[req.start_id]
     pkg_indices = [id_to_idx[pid] for pid in req.package_ids if pid in id_to_idx]
-
     dist_matrix = np.array(req.matrix, dtype=np.float64)
-    n_points = dist_matrix.shape[0]
+    n_pkgs = len(pkg_indices)
 
-    # Edge cases
-    if len(pkg_indices) == 0:
+    # Baselines
+    nn_tour, nn_dist = nearest_neighbor_tour(start_idx, pkg_indices, dist_matrix)
+    orig_tour, orig_dist = original_order_tour(start_idx, pkg_indices, dist_matrix)
+
+    # Tier 1: N = 0 atau N = 1
+    if n_pkgs == 0:
         return OptimizeResponse(
             courier_id=req.courier_id,
             tour=[],
             total_distance_m=0.0,
             iterations_log=[],
             convergence=[],
-            execution_time_ms=0.0,
+            execution_time_ms=round((time.perf_counter() - start_time) * 1000, 2),
             nn_distance_m=0.0,
-            original_order_distance_m=0.0
+            original_order_distance_m=0.0,
+            algorithm_used="Direct",
+            reasoning="Tidak ada paket yang ditugaskan."
         )
 
-    if len(pkg_indices) == 1:
+    if n_pkgs == 1:
         d = float(dist_matrix[start_idx, pkg_indices[0]])
+        tour_ids = [req.point_ids[pkg_indices[0]]]
         return OptimizeResponse(
             courier_id=req.courier_id,
-            tour=[req.point_ids[pkg_indices[0]]],
+            tour=tour_ids,
             total_distance_m=round(d, 2),
             iterations_log=[
                 ACOIterationLog(
                     iteration=1,
-                    best_tour=[req.point_ids[pkg_indices[0]]],
+                    best_tour=tour_ids,
                     best_distance_m=round(d, 2),
                     avg_distance_m=round(d, 2)
                 )
@@ -148,14 +162,77 @@ def solve_open_tsp_aco(req: OptimizeRequest) -> OptimizeResponse:
             convergence=[round(d, 2)],
             execution_time_ms=round((time.perf_counter() - start_time) * 1000, 2),
             nn_distance_m=round(d, 2),
-            original_order_distance_m=round(d, 2)
+            original_order_distance_m=round(d, 2),
+            algorithm_used="Direct Hop",
+            reasoning="Hanya 1 paket (rute langsung)."
         )
 
-    # Baselines
-    nn_tour, nn_dist = nearest_neighbor_tour(start_idx, pkg_indices, dist_matrix)
-    orig_tour, orig_dist = original_order_tour(start_idx, pkg_indices, dist_matrix)
+    # Tier 2: 2 <= N <= 7 -> Exact Brute Force (100% Global Optimum)
+    if 2 <= n_pkgs <= 7:
+        best_perm, best_dist = brute_force_best_tour(start_idx, pkg_indices, dist_matrix)
+        tour_ids = [req.point_ids[idx] for idx in best_perm]
+        return OptimizeResponse(
+            courier_id=req.courier_id,
+            tour=tour_ids,
+            total_distance_m=round(best_dist, 2),
+            iterations_log=[
+                ACOIterationLog(
+                    iteration=1,
+                    best_tour=tour_ids,
+                    best_distance_m=round(best_dist, 2),
+                    avg_distance_m=round(best_dist, 2)
+                )
+            ],
+            convergence=[round(best_dist, 2)],
+            execution_time_ms=round((time.perf_counter() - start_time) * 1000, 2),
+            nn_distance_m=round(nn_dist, 2),
+            original_order_distance_m=round(orig_dist, 2),
+            algorithm_used="Exact Brute Force",
+            reasoning=f"N={n_pkgs} (<=7): 100% solusi optimal mutlak terpendek."
+        )
 
-    # ACO Setup
+    # Tier 3: 8 <= N <= 14 -> Fast Nearest Neighbor
+    if 8 <= n_pkgs <= 14:
+        tour_ids = [req.point_ids[idx] for idx in nn_tour]
+        return OptimizeResponse(
+            courier_id=req.courier_id,
+            tour=tour_ids,
+            total_distance_m=round(nn_dist, 2),
+            iterations_log=[
+                ACOIterationLog(
+                    iteration=1,
+                    best_tour=tour_ids,
+                    best_distance_m=round(nn_dist, 2),
+                    avg_distance_m=round(nn_dist, 2)
+                )
+            ],
+            convergence=[round(nn_dist, 2)],
+            execution_time_ms=round((time.perf_counter() - start_time) * 1000, 2),
+            nn_distance_m=round(nn_dist, 2),
+            original_order_distance_m=round(orig_dist, 2),
+            algorithm_used="Nearest Neighbor",
+            reasoning=f"N={n_pkgs} (8-14): Kecepatan sub-milidetik untuk klaster lokal."
+        )
+
+    # Tier 4: N >= 15 -> Ant Colony Optimization (Metaheuristik Global)
+    res = run_pure_aco(req, start_idx, pkg_indices, dist_matrix, nn_tour, nn_dist, orig_dist, start_time)
+    res.algorithm_used = "Ant Colony Optimization"
+    res.reasoning = f"N={n_pkgs} (>=15): Optimasi global mencegah jebakan greedy."
+    return res
+
+
+def run_pure_aco(
+    req: OptimizeRequest,
+    start_idx: int,
+    pkg_indices: List[int],
+    dist_matrix: np.ndarray,
+    nn_tour: List[int],
+    nn_dist: float,
+    orig_dist: float,
+    start_time: float
+) -> OptimizeResponse:
+    """Internal ACO solver loop."""
+    n_points = dist_matrix.shape[0]
     n_pkgs = len(pkg_indices)
     n_ants = req.n_ants if (req.n_ants and req.n_ants > 0) else max(n_pkgs, 5)
     iterations = max(req.iterations, 1)
@@ -200,7 +277,6 @@ def solve_open_tsp_aco(req: OptimizeRequest) -> OptimizeResponse:
                 p_sum = np.sum(p_values)
 
                 if p_sum <= 0 or np.isnan(p_sum):
-                    # Fallback to uniform random
                     probs = np.ones(len(unvisited)) / len(unvisited)
                 else:
                     probs = p_values / p_sum
@@ -225,7 +301,6 @@ def solve_open_tsp_aco(req: OptimizeRequest) -> OptimizeResponse:
         for tour, length in zip(all_ant_tours, all_ant_lengths):
             if length > 0:
                 deposit = q_val / length
-                # Edge from start to first package
                 c_prev = start_idx
                 for c_curr in tour:
                     pheromone[c_prev, c_curr] += deposit
@@ -239,13 +314,10 @@ def solve_open_tsp_aco(req: OptimizeRequest) -> OptimizeResponse:
                 pheromone[c_prev, c_curr] += elite_deposit
                 c_prev = c_curr
 
-        # Keep tau within reasonable bounds to prevent numerical under/overflow
         pheromone = np.clip(pheromone, 1e-10, 1e5)
-
         avg_dist = float(np.mean(all_ant_lengths))
         convergence.append(round(best_dist_overall, 2))
 
-        # Log iteration milestone (every 10 or first 5 and last)
         if it < 5 or (it + 1) % 10 == 0 or it == iterations - 1:
             iterations_log.append(ACOIterationLog(
                 iteration=it + 1,
@@ -264,5 +336,62 @@ def solve_open_tsp_aco(req: OptimizeRequest) -> OptimizeResponse:
         convergence=convergence,
         execution_time_ms=round(elapsed_ms, 2),
         nn_distance_m=round(nn_dist, 2),
-        original_order_distance_m=round(orig_dist, 2)
+        original_order_distance_m=round(orig_dist, 2),
+        algorithm_used="Ant Colony Optimization",
+        reasoning="Ant Colony Optimization (ACO) global heuristic search."
     )
+
+
+def solve_open_tsp_aco(req: OptimizeRequest) -> OptimizeResponse:
+    """Entry point for routing optimization, defaults to adaptive routing."""
+    if getattr(req, "adaptive", True):
+        return solve_adaptive_tour(req)
+
+    start_time = time.perf_counter()
+    id_to_idx = {pid: i for i, pid in enumerate(req.point_ids)}
+    if req.start_id not in id_to_idx:
+        raise ValueError(f"Titik awal '{req.start_id}' tidak ditemukan di matriks.")
+
+    start_idx = id_to_idx[req.start_id]
+    pkg_indices = [id_to_idx[pid] for pid in req.package_ids if pid in id_to_idx]
+    dist_matrix = np.array(req.matrix, dtype=np.float64)
+
+    if len(pkg_indices) == 0:
+        return OptimizeResponse(
+            courier_id=req.courier_id,
+            tour=[],
+            total_distance_m=0.0,
+            iterations_log=[],
+            convergence=[],
+            execution_time_ms=0.0,
+            nn_distance_m=0.0,
+            original_order_distance_m=0.0,
+            algorithm_used="Direct",
+            reasoning="Tidak ada paket."
+        )
+
+    if len(pkg_indices) == 1:
+        d = float(dist_matrix[start_idx, pkg_indices[0]])
+        return OptimizeResponse(
+            courier_id=req.courier_id,
+            tour=[req.point_ids[pkg_indices[0]]],
+            total_distance_m=round(d, 2),
+            iterations_log=[
+                ACOIterationLog(
+                    iteration=1,
+                    best_tour=[req.point_ids[pkg_indices[0]]],
+                    best_distance_m=round(d, 2),
+                    avg_distance_m=round(d, 2)
+                )
+            ],
+            convergence=[round(d, 2)],
+            execution_time_ms=round((time.perf_counter() - start_time) * 1000, 2),
+            nn_distance_m=round(d, 2),
+            original_order_distance_m=round(d, 2),
+            algorithm_used="Direct Hop",
+            reasoning="Hanya 1 paket."
+        )
+
+    nn_tour, nn_dist = nearest_neighbor_tour(start_idx, pkg_indices, dist_matrix)
+    orig_tour, orig_dist = original_order_tour(start_idx, pkg_indices, dist_matrix)
+    return run_pure_aco(req, start_idx, pkg_indices, dist_matrix, nn_tour, nn_dist, orig_dist, start_time)

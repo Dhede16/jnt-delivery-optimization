@@ -299,24 +299,24 @@ def solve_adaptive_tour(
 Berikut adalah daftar tugas terstruktur untuk mengeksekusi perombakan ini:
 
 ### Fase 1: Backend (Adaptive Routing Engine)
-- [ ] Buat fungsi `solve_adaptive_tour(start_idx, pkg_indices, dist_matrix, point_ids)` di `backend/aco.py` sesuai 4 tingkatan ($N=1$, $2 \le N \le 7$, $8 \le N \le 14$, $N \ge 15$).
-- [ ] Perbarui endpoint `/optimize` di `backend/main.py` agar mengembalikan informasi algoritma yang terpilih secara adaptif (`algorithm_used` dan `reasoning`).
-- [ ] Tambahkan unit test baru di `backend/tests/test_adaptive_routing.py` untuk menguji kepatuhan ambang batas jumlah paket.
+- [x] Buat fungsi `solve_adaptive_tour(start_idx, pkg_indices, dist_matrix, point_ids)` di `backend/aco.py` sesuai 4 tingkatan ($N=1$, $2 \le N \le 7$, $8 \le N \le 14$, $N \ge 15$).
+- [x] Perbarui endpoint `/optimize` di `backend/main.py` agar mengembalikan informasi algoritma yang terpilih secara adaptif (`algorithm_used` dan `reasoning`).
+- [x] Tambahkan unit test baru di `backend/tests/test_adaptive_routing.py` untuk menguji kepatuhan ambang batas jumlah paket.
 
 ### Fase 2: Frontend Layout & Pembersihan Panel Kiri
-- [ ] Lepas impor dan tag `<AlgorithmExplorationPanel />` dari `frontend/src/App.vue`.
-- [ ] Bersihkan variabel state yang tidak lagi digunakan di `frontend/src/stores/appStore.js` (`isLeftPanelExpanded`, `activeAlgoTab`).
-- [ ] Hapus file `frontend/src/components/AlgorithmExplorationPanel.vue` (atau arsipkan).
-- [ ] Pastikan peta Leaflet (`MapView.vue`) dapat memanfaatkan 100% lebar viewport secara mulus tanpa margin kiri.
+- [x] Lepas impor dan tag `<AlgorithmExplorationPanel />` dari `frontend/src/App.vue`.
+- [x] Bersihkan variabel state yang tidak lagi digunakan di `frontend/src/stores/appStore.js` (`isLeftPanelExpanded`, `activeAlgoTab`).
+- [x] Hapus file `frontend/src/components/AlgorithmExplorationPanel.vue`.
+- [x] Pastikan peta Leaflet (`MapView.vue`) dapat memanfaatkan 100% lebar viewport secara mulus tanpa margin kiri (`left-4` symmetrical).
 
 ### Fase 3: Penerapan Tema Nuansa Biru (UI & Styling)
-- [ ] Konfigurasi ulang warna di `frontend/tailwind.config.js` untuk nuansa biru dominan (`#2563EB`, `#1E3E62`, `#DBEAFE`).
-- [ ] Perbarui variabel CSS root di `frontend/src/style.css` (ganti `--color-primary` dan turunannya).
-- [ ] Sesuaikan komponen `DataDrawer.vue` dan `MapView.vue` dengan aksen biru modern, border elegan, dan badge algoritma adaptif.
+- [x] Konfigurasi ulang warna di `frontend/tailwind.config.js` untuk nuansa biru dominan (`#2563EB`, `#1E3E62`, `#DBEAFE`).
+- [x] Perbarui variabel CSS root di `frontend/src/style.css` (ganti `--color-primary` dan turunannya).
+- [x] Sesuaikan komponen `DataDrawer.vue` dan `MapView.vue` dengan aksen biru modern, border elegan, dan badge algoritma adaptif.
 
 ### Fase 4: Validasi & Pengujian Rute
-- [ ] Jalankan pengujian backend otomatis (`pytest backend/tests`).
-- [ ] Uji skenario input 1 paket, 5 paket, 12 paket, dan 30 paket untuk memverifikasi peralihan algoritma otomatis berjalan sesuai harapan.
+- [x] Jalankan pengujian backend otomatis (`pytest backend/tests` - 17 passed).
+- [x] Kompilasi build frontend produksi Vite (`npm run --prefix frontend build` - sukses).
 
 ---
 

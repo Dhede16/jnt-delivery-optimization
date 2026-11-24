@@ -3,16 +3,16 @@ import { nextTick } from 'vue'
 import axios from 'axios'
 
 const DEFAULT_COLORS = [
-  '#3366FF',
-  '#FF6B6B',
-  '#2FB67C',
-  '#F5A524',
-  '#9B5DE5',
-  '#00B8D9',
-  '#F15BB5',
-  '#8D6E63',
-  '#5C6BC0',
-  '#26A69A'
+  '#2563EB', // Royal Blue (Primary)
+  '#0284C7', // Deep Cyan / Sky
+  '#4F46E5', // Indigo
+  '#0EA5E9', // Ocean Blue
+  '#1D4ED8', // Sapphire
+  '#059669', // Emerald Green
+  '#D97706', // Amber
+  '#7C3AED', // Purple
+  '#DB2777', // Rose Pink
+  '#475569'  // Slate
 ]
 
 export const useAppStore = defineStore('app', {
@@ -72,10 +72,8 @@ export const useAppStore = defineStore('app', {
     comparisonData: null,
 
     // UI Panels
-    isLeftPanelExpanded: false,
     isBottomDrawerOpen: false,
     bottomDrawerTab: 'packages', // 'packages' | 'couriers' | 'params' | 'scenarios' | 'history'
-    activeAlgoTab: 'knn', // 'knn' | 'aco' | 'compare'
     selectedStepPackageId: null,
     selectedCourierForAco: 'c1'
   }),
@@ -408,7 +406,9 @@ export const useAppStore = defineStore('app', {
             visitedCoordinates: [[this.depot.lat, this.depot.lng]],
             isFinished: false,
             acoLogs: optRes.data.iterations_log,
-            convergence: optRes.data.convergence
+            convergence: optRes.data.convergence,
+            algorithmUsed: optRes.data.algorithm_used || 'Adaptive Routing',
+            reasoning: optRes.data.reasoning || ''
           }
         }
 
@@ -494,6 +494,8 @@ export const useAppStore = defineStore('app', {
         cs.remainingPackageIds = [...optRes.data.tour]
         cs.acoLogs = optRes.data.iterations_log
         cs.convergence = optRes.data.convergence
+        if (optRes.data.algorithm_used) cs.algorithmUsed = optRes.data.algorithm_used
+        if (optRes.data.reasoning) cs.reasoning = optRes.data.reasoning
 
         // Update remaining road geometry
         const waypoints = [
@@ -561,8 +563,6 @@ export const useAppStore = defineStore('app', {
         if (res.data.knn_rebalance_logs) {
           this.knnRebalanceLogs = res.data.knn_rebalance_logs
         }
-        this.activeAlgoTab = 'compare'
-        this.isLeftPanelExpanded = true
         return res.data
       } catch (err) {
         console.error('Error running comparisons:', err)
