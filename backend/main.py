@@ -1,7 +1,9 @@
 import json
 import os
+import random
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
+from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +18,7 @@ from osrm import (
     get_distance_matrix,
     get_knn_road_distance_matrices,
     get_route_geometry,
+    snap_points_to_roads,
 )
 from schemas import (
     AllocateRequest,
@@ -28,6 +31,8 @@ from schemas import (
     MatrixResponse,
     OptimizeRequest,
     OptimizeResponse,
+    Point,
+    RandomPackagesRequest,
 )
 
 app = FastAPI(
@@ -45,6 +50,12 @@ app.add_middleware(
 )
 
 DATA_PATH = Path(__file__).resolve().parent / "data" / "scenarios.json"
+SAMARINDA_PACKAGE_BOUNDS = {
+    "min_lat": -0.528,
+    "max_lat": -0.472,
+    "min_lng": 117.102,
+    "max_lng": 117.158,
+}
 
 
 @app.get("/api/config")
@@ -81,6 +92,30 @@ def get_scenarios() -> Dict[str, Any]:
         raise HTTPException(status_code=404, detail="Berkas skenario tidak ditemukan.")
     with open(DATA_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+@app.post("/api/random-packages", response_model=List[Point])
+async def post_random_packages(req: RandomPackagesRequest):
+    bounds = SAMARINDA_PACKAGE_BOUNDS
+    candidates = [
+        Point(
+            id=f"P-{uuid4()}",
+            name=f"Paket Acak #{index + 1}",
+            lat=random.uniform(bounds["min_lat"], bounds["max_lat"]),
+            lng=random.uniform(bounds["min_lng"], bounds["max_lng"]),
+        )
+        for index in range(req.count)
+    ]
+    depot = Point(
+        id="depot-jnt",
+        name="J&T Express Drop Point Juanda Samarinda",
+        lat=-0.4897,
+        lng=117.1352,
+    )
+    try:
+        return await snap_points_to_roads(candidates, depot)
+    except RoadDistanceError as e:
+        raise HTTPException(status_code=503, detail=str(e))
 
 
 @app.post("/api/matrix", response_model=MatrixResponse)

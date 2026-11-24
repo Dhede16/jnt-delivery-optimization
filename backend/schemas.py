@@ -7,6 +7,10 @@ class LatLng(BaseModel):
     lng: float
 
 
+class RandomPackagesRequest(BaseModel):
+    count: int = Field(..., ge=1, le=50)
+
+
 class Point(BaseModel):
     id: str
     name: str = ""

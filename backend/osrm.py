@@ -9,10 +9,75 @@ logger = logging.getLogger(__name__)
 
 OSRM_BASE_URL = "https://router.project-osrm.org"
 OSRM_TABLE_BATCH_SIZE = 50
+ROAD_SNAP_RADIUS_M = 500
 
 
 class RoadDistanceError(RuntimeError):
     pass
+
+
+async def snap_points_to_roads(points: List[Point], anchor: Point) -> List[Point]:
+    if not points:
+        return []
+
+    coordinates = [*points, anchor]
+    coords_str = ";".join(
+        f"{point.lng:.6f},{point.lat:.6f}" for point in coordinates
+    )
+    source_indices = ";".join(str(index) for index in range(len(points)))
+    radius_values = ";".join(str(ROAD_SNAP_RADIUS_M) for _ in coordinates)
+    url = (
+        f"{OSRM_BASE_URL}/table/v1/driving/{coords_str}"
+        f"?annotations=distance&sources={source_indices}"
+        f"&destinations={len(points)}&radiuses={radius_values}"
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            data = response.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        raise RoadDistanceError(
+            "Gagal memastikan lokasi paket berada di jalan. Coba lagi saat layanan tersedia."
+        ) from exc
+
+    if not isinstance(data, dict) or data.get("code") != "Ok":
+        raise RoadDistanceError("OSRM tidak dapat menempatkan semua paket pada jalan terdekat.")
+
+    sources = data.get("sources")
+    if not isinstance(sources, list) or len(sources) != len(points):
+        raise RoadDistanceError("OSRM mengembalikan lokasi paket yang tidak lengkap.")
+
+    snapped_points = []
+    for point, source in zip(points, sources):
+        location = source.get("location") if isinstance(source, dict) else None
+        distance = source.get("distance") if isinstance(source, dict) else None
+        if not isinstance(location, list) or len(location) != 2:
+            raise RoadDistanceError("OSRM tidak menemukan jalan di dekat salah satu paket.")
+        try:
+            lng, lat = map(float, location)
+            snap_distance = float(distance)
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise RoadDistanceError("OSRM mengembalikan koordinat jalan yang tidak valid.") from exc
+        if (
+            not math.isfinite(lat)
+            or not -90 <= lat <= 90
+            or not math.isfinite(lng)
+            or not -180 <= lng <= 180
+            or not math.isfinite(snap_distance)
+            or snap_distance < 0
+            or snap_distance > ROAD_SNAP_RADIUS_M
+        ):
+            raise RoadDistanceError("OSRM mengembalikan koordinat jalan yang tidak valid.")
+        snapped_points.append(Point(
+            id=point.id,
+            name=point.name,
+            lat=lat,
+            lng=lng
+        ))
+
+    return snapped_points
 
 
 async def get_knn_road_distance_matrices(

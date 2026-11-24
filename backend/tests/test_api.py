@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 import main
 from osrm import RoadDistanceError
+from schemas import Point
 
 client = TestClient(main.app)
 
@@ -19,6 +20,37 @@ def test_get_scenarios():
     data = res.json()
     assert "scenarios" in data
     assert len(data["scenarios"]) >= 4
+
+
+def test_random_packages_are_generated_in_samarinda_and_snapped(monkeypatch):
+    seen = {}
+
+    async def snap_to_roads(points, anchor):
+        seen["points"] = points
+        seen["anchor"] = anchor
+        return [
+            Point(id=point.id, name=point.name, lat=-0.4894, lng=117.1351)
+            for point in points
+        ]
+
+    monkeypatch.setattr(main, "snap_points_to_roads", snap_to_roads)
+    response = client.post("/api/random-packages", json={"count": 3})
+
+    assert response.status_code == 200
+    packages = response.json()
+    assert len(packages) == 3
+    assert len({package["id"] for package in packages}) == 3
+    assert all(
+        package["name"] == f"Paket Acak #{index + 1}"
+        for index, package in enumerate(packages)
+    )
+    assert all(-0.528 <= point.lat <= -0.472 for point in seen["points"])
+    assert all(117.102 <= point.lng <= 117.158 for point in seen["points"])
+    assert all(package["lat"] == -0.4894 and package["lng"] == 117.1351 for package in packages)
+    assert seen["anchor"].id == "depot-jnt"
+
+    assert client.post("/api/random-packages", json={"count": 0}).status_code == 422
+    assert client.post("/api/random-packages", json={"count": 51}).status_code == 422
 
 
 def test_allocate_and_optimize_endpoints(monkeypatch):

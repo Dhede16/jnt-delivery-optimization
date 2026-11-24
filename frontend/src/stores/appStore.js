@@ -78,8 +78,7 @@ export const useAppStore = defineStore('app', {
     // History
     stepHistory: [],
 
-    // Scenarios & Compare
-    scenarios: [],
+    // Compare
     comparisonData: null,
 
     // UI Panels
@@ -131,10 +130,7 @@ export const useAppStore = defineStore('app', {
   actions: {
     async init() {
       try {
-        const [cfgRes, scnRes] = await Promise.all([
-          axios.get('/api/config'),
-          axios.get('/api/scenarios')
-        ])
+        const cfgRes = await axios.get('/api/config')
         if (cfgRes.data) {
           this.depot = cfgRes.data.depot
           this.knnParams.k = cfgRes.data.defaults.knn_k
@@ -143,9 +139,6 @@ export const useAppStore = defineStore('app', {
           this.acoParams.rho = cfgRes.data.defaults.aco_rho
           this.acoParams.q = cfgRes.data.defaults.aco_q
           this.acoParams.iterations = cfgRes.data.defaults.aco_iterations
-        }
-        if (scnRes.data && scnRes.data.scenarios) {
-          this.scenarios = scnRes.data.scenarios
         }
       } catch (err) {
         console.error('Init error:', err)
@@ -276,18 +269,31 @@ export const useAppStore = defineStore('app', {
       await this.refreshPackageAllocation()
     },
 
-    async loadScenario(scenarioId) {
+    async generateRandomPackages(count) {
       if (this.isRouteStarted || this.isCalculating) return
       if (!this.canStartPackageInput) {
-        this.errorMessage = 'Tambahkan kurir dan minimal satu titik acuan untuk setiap kurir sebelum memuat skenario.'
+        this.errorMessage = 'Tambahkan kurir dan minimal satu titik acuan untuk setiap kurir sebelum membuat paket acak.'
         this.bottomDrawerTab = 'couriers'
+        this.isBottomDrawerOpen = true
         return
       }
-      const sc = this.scenarios.find(s => s.id === scenarioId)
-      if (!sc) return
-      this.packages = JSON.parse(JSON.stringify(sc.packages))
-      this.resetRoutingStateOnly()
-      await this.calculateRoutes(false)
+      if (!Number.isInteger(count) || count < 1 || count > 50) {
+        this.errorMessage = 'Jumlah paket harus berupa bilangan bulat antara 1 dan 50.'
+        return
+      }
+
+      this.isCalculating = true
+      try {
+        const response = await axios.post('/api/random-packages', { count })
+        this.packages = response.data
+        this.resetRoutingStateOnly()
+        this.isCalculating = false
+        await this.calculateRoutes(false)
+      } catch (err) {
+        this.errorMessage = err.response?.data?.detail || err.message || 'Gagal membuat paket acak.'
+      } finally {
+        this.isCalculating = false
+      }
     },
 
     resetRoutingStateOnly() {

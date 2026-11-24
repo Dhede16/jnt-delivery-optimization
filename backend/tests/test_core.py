@@ -148,6 +148,47 @@ def test_osrm_knn_distance_matrix(monkeypatch):
     assert package_matrix == [[200, 400]]
 
 
+def test_osrm_snaps_random_points_to_roads(monkeypatch):
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {
+                "code": "Ok",
+                "sources": [{
+                    "location": [117.1351, -0.4894],
+                    "distance": 25.0
+                }]
+            }
+
+    class FakeClient:
+        def __init__(self, timeout):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def get(self, url):
+            assert "/table/v1/driving/" in url
+            assert "radiuses=500;500" in url
+            return FakeResponse()
+
+    monkeypatch.setattr(osrm.httpx, "AsyncClient", FakeClient)
+    points = [Point(id="p1", name="Paket Acak #1", lat=-0.50, lng=117.14)]
+    anchor = Point(id="depot", lat=-0.4897, lng=117.1352)
+
+    snapped = asyncio.run(osrm.snap_points_to_roads(points, anchor))
+
+    assert len(snapped) == 1
+    assert snapped[0].lat == -0.4894
+    assert snapped[0].lng == 117.1351
+    assert snapped[0].id == "p1"
+
+
 def test_aco_open_tsp_vs_brute_force():
     # Small instance: 4 packages, depot at index 0
     # Symmetric 5x5 matrix

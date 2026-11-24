@@ -134,22 +134,28 @@
       <!-- Tab Contents Area -->
       <div class="flex-1 overflow-y-auto p-6">
         
-        <!-- =================== TAB 1: PACKAGES & SCENARIOS =================== -->
+        <!-- =================== TAB 1: PACKAGES =================== -->
         <div v-if="store.bottomDrawerTab === 'packages'" class="space-y-4">
-          <!-- Top Tool Bar: Presets -->
+          <!-- Top Tool Bar: Random Packages -->
           <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
-            <!-- Scenario Preset Loader (FR-18) -->
-            <div class="flex items-center space-x-2">
-              <span class="text-xs font-bold text-slate-700">Muat Skenario Uji:</span>
-              <button 
-                v-for="sc in store.scenarios" 
-                :key="sc.id"
-                @click="store.loadScenario(sc.id)"
-                :disabled="!store.canStartPackageInput || store.isRouteStarted || store.isCalculating"
-                class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 transition-all border border-slate-200"
-                :title="sc.description"
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-bold text-slate-700">Buat Paket Acak:</span>
+              <input
+                id="random-package-count"
+                v-model.number="randomPackageCount"
+                type="number"
+                min="1"
+                max="50"
+                step="1"
+                :disabled="store.isRouteStarted || store.isCalculating"
+                class="w-20 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-700 disabled:opacity-40"
+              />
+              <button
+                @click="store.generateRandomPackages(randomPackageCount)"
+                :disabled="store.isRouteStarted || store.isCalculating || !Number.isInteger(randomPackageCount) || randomPackageCount < 1 || randomPackageCount > 50"
+                class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-primary hover:bg-primary-dark text-white disabled:opacity-40 transition-all"
               >
-                {{ sc.id.replace('scenario-', '') }} Paket
+                Buat
               </button>
               <button 
                 @click="store.packages = []; store.resetRoutingStateOnly()"
@@ -169,7 +175,7 @@
             </div>
 
             <div v-if="store.packages.length === 0" class="py-8 text-center text-xs text-slate-400">
-              <template v-if="store.canStartPackageInput">Belum ada paket. Pilih skenario uji di atas.</template>
+              <template v-if="store.canStartPackageInput">Belum ada paket. Buat paket acak di atas atau tambahkan melalui peta.</template>
               <template v-else>Input paket terkunci sampai kurir dan titik acuan siap.</template>
             </div>
 
@@ -395,6 +401,7 @@ defineEmits(['advance-all'])
 
 const store = useAppStore()
 const showResetConfirmation = ref(false)
+const randomPackageCount = ref(10)
 
 function confirmReset() {
   showResetConfirmation.value = false
