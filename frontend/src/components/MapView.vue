@@ -9,7 +9,7 @@
         <div class="flex flex-col">
           <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Fitur aktif</span>
           <span class="text-xs font-bold" :class="inputMode === 'package' ? 'text-primary' : inputMode === 'move' ? 'text-blue-600' : 'text-amber-600'">
-            {{ inputMode === 'package' ? 'Tambah Paket' : inputMode === 'move' ? 'Pindahkan Paket' : `Titik Acuan — ${store.activeCourier?.name || 'Pilih Kurir'}` }}
+            {{ inputMode === 'package' ? 'Tambah Paket' : inputMode === 'move' ? 'Pindahkan Lokasi' : `Titik Acuan — ${store.activeCourier?.name || 'Pilih Kurir'}` }}
           </span>
         </div>
       </div>
@@ -90,8 +90,8 @@
           type="button"
           @click="inputMode = 'move'"
           :aria-pressed="inputMode === 'move'"
-          aria-label="Pindahkan paket dengan menyeret marker"
-          title="Pindahkan Paket"
+          aria-label="Pindahkan paket, titik acuan, atau depot dengan menyeret marker"
+          title="Pindahkan Lokasi"
           :disabled="store.isRouteStarted || store.isCalculating"
           class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           :class="inputMode === 'move' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-primary-soft hover:text-primary'"
@@ -410,6 +410,7 @@ watch(
     store.packages,
     store.couriers,
     store.courierStates,
+    store.depot,
     store.isRouteStarted,
     store.isCalculating,
     inputMode.value,
@@ -453,7 +454,10 @@ function renderDepot() {
     iconAnchor: [20, 20]
   })
 
-  L.marker([d.lat, d.lng], { icon: depotIcon })
+  const marker = L.marker([d.lat, d.lng], {
+    icon: depotIcon,
+    draggable: inputMode.value === 'move' && !store.isRouteStarted && !store.isCalculating
+  })
     .bindPopup(`
       <div style="font-family: inherit; font-size: 12px; padding: 4px;">
         <strong style="color: #2563EB; font-size: 13px;">${d.name}</strong>
@@ -461,7 +465,13 @@ function renderDepot() {
         <p style="margin: 2px 0 0; font-size: 10px; color: #64748b;">${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}</p>
       </div>
     `)
-    .addTo(depotLayer)
+  if (marker.options.draggable) {
+    marker.on('dragend', async (event) => {
+      const { lat, lng } = event.target.getLatLng()
+      await store.moveDepot(lat, lng)
+    })
+  }
+  marker.addTo(depotLayer)
 }
 
 function renderRefPoints() {
@@ -480,7 +490,10 @@ function renderRefPoints() {
         iconAnchor: [13, 13]
       })
 
-      const marker = L.marker([rp.lat, rp.lng], { icon })
+      const marker = L.marker([rp.lat, rp.lng], {
+        icon,
+        draggable: inputMode.value === 'move' && !store.isRouteStarted && !store.isCalculating
+      })
         .bindPopup(`
           <div style="font-size: 12px; padding: 2px;">
             <div style="color: ${courier.color}; font-weight: bold;">${rp.name || 'Titik Acuan'}</div>
@@ -493,6 +506,12 @@ function renderRefPoints() {
             ` : ''}
           </div>
         `)
+      if (marker.options.draggable) {
+        marker.on('dragend', async (event) => {
+          const { lat, lng } = event.target.getLatLng()
+          await store.moveRefPoint(courier.id, rp.id, lat, lng)
+        })
+      }
       marker.addTo(refPointsLayer)
     })
   })
@@ -629,6 +648,7 @@ function renderCourierPositions() {
     } else {
       marker.setLatLng([state.currentPos.lat, state.currentPos.lng])
     }
+    marker.setZIndexOffset(inputMode.value === 'move' ? -1000 : 0)
     marker.bindPopup(`
         <div style="font-size: 12px; font-weight: bold; color: ${color};">
           Posisi Saat Ini: ${courier?.name || courierId}

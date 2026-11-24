@@ -260,6 +260,22 @@ export const useAppStore = defineStore('app', {
       await this.refreshPackageAllocation()
     },
 
+    async moveRefPoint(courierId, refPointId, lat, lng) {
+      if (this.isRouteStarted) return
+      const refPoint = this.couriers.find(c => c.id === courierId)?.ref_points.find(rp => rp.id === refPointId)
+      if (!refPoint) return
+      refPoint.lat = Number(lat.toFixed(5))
+      refPoint.lng = Number(lng.toFixed(5))
+      await this.refreshPackageAllocation()
+    },
+
+    async moveDepot(lat, lng) {
+      if (this.isRouteStarted) return
+      this.depot.lat = Number(lat.toFixed(5))
+      this.depot.lng = Number(lng.toFixed(5))
+      await this.refreshPackageAllocation()
+    },
+
     async loadScenario(scenarioId) {
       if (this.isRouteStarted || this.isCalculating) return
       if (!this.canStartPackageInput) {
