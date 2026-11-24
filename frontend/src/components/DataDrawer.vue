@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="control-drawer fixed z-20 flex flex-col transition-all duration-500 ease-in-out"
+    class="control-drawer fixed z-20 flex flex-col transition-all duration-[1200ms] ease-in-out"
     :class="store.isBottomDrawerOpen ? ['h-[440px]', 'is-open'] : ['h-16', 'is-collapsed']"
   >
     <!-- Drawer Drag / Toggle Handle Bar -->
