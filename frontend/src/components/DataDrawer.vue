@@ -33,18 +33,8 @@
         </svg>
       </button>
 
-      <!-- Quick Metrics Pills -->
+      <!-- Quick Metrics Pills & Action Buttons -->
       <div class="flex items-center space-x-3 text-xs" @click.stop>
-        <div class="hidden sm:flex items-center space-x-2 bg-white/70 px-3 py-1.5 rounded-xl border border-line">
-          <span class="text-slate-400">Paket:</span>
-          <span class="font-bold text-ink font-mono">{{ store.packages.length }}/50</span>
-        </div>
-
-        <div class="hidden sm:flex items-center space-x-2 bg-white/70 px-3 py-1.5 rounded-xl border border-line">
-          <span class="text-slate-400">Kurir:</span>
-          <span class="font-bold text-ink font-mono">{{ store.couriers.length }}/10</span>
-        </div>
-
         <div v-if="store.isRouteStarted" class="flex items-center space-x-2 bg-primary-soft px-3 py-1.5 rounded-xl border border-line text-primary">
           <span>Ditempuh:</span>
           <span class="font-bold font-mono text-ink">{{ store.totalDistanceTraveledKm }} km</span>
@@ -101,7 +91,7 @@
 
         <!-- Action: Reset -->
         <button 
-          @click="confirmReset"
+          @click="showResetConfirmation = true"
           :disabled="store.isCalculating || isAnimating"
           class="bg-white/70 hover:bg-white text-slate-600 hover:text-ink font-bold px-3 py-2 rounded-xl text-xs border border-line transition-all"
           title="Reset Sesi"
@@ -131,14 +121,6 @@
         >
           <span>Kelola Kurir & Titik Acuan</span>
           <span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] text-slate-600 font-mono">{{ store.couriers.length }}/10</span>
-        </button>
-
-        <button 
-          @click="store.bottomDrawerTab = 'params'; store.clickMode = 'package'"
-          class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
-          :class="store.bottomDrawerTab === 'params' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
-        >
-          <span>Parameter Model</span>
         </button>
 
         <button 
@@ -375,150 +357,7 @@
           </div>
         </div>
 
-        <!-- =================== TAB 3: PARAMETERS =================== -->
-        <div v-else-if="store.bottomDrawerTab === 'params'" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- KNN Parameters -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-              <h4 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                <span>Parameter K-Nearest Neighbors (KNN)</span>
-              </h4>
-
-              <div>
-                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>Nilai k (Jumlah Tetangga):</span>
-                  <span class="font-mono text-indigo-600 font-black text-sm">{{ store.knnParams.k }}</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="15" 
-                  v-model.number="store.knnParams.k"
-                  :disabled="store.isRouteStarted"
-                  class="w-full accent-indigo-600 cursor-pointer"
-                />
-                <p class="text-[11px] text-slate-400 mt-1">Nilai bawaan: 1.</p>
-              </div>
-
-              <!-- Balance Load Toggle (FR-16) -->
-              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <div>
-                  <span class="text-xs font-bold text-slate-800 block">Opsi Seimbangkan Beban </span>
-                  <span class="text-[11px] text-slate-500">Membatasi kapasitas kurir maksimal ceil(N / M).</span>
-                </div>
-                <input 
-                  type="checkbox" 
-                  v-model="store.knnParams.balanceLoad"
-                  :disabled="store.isRouteStarted"
-                  class="w-5 h-5 accent-primary cursor-pointer rounded"
-                />
-              </div>
-            </div>
-
-            <!-- ACO & Adaptive Routing Parameters -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-              <h4 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                <span>Adaptive Routing & Parameter ACO</span>
-              </h4>
-
-              <!-- Adaptive Routing Info Banner -->
-              <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3 text-xs space-y-1.5">
-                <div class="font-bold text-blue-900 flex items-center gap-1.5">
-                  <span>🧠</span> Penentu Arah Cerdas Otomatis
-                </div>
-                <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-700">
-                  <div class="bg-white/80 p-1.5 rounded-lg border border-blue-100">
-                    <span class="font-bold text-blue-700 block">N = 1</span>
-                    <span>Direct Hop ($O(1)$ instan)</span>
-                  </div>
-                  <div class="bg-white/80 p-1.5 rounded-lg border border-blue-100">
-                    <span class="font-bold text-blue-700 block">2 &le; N &le; 7</span>
-                    <span>Exact Optimal (100% mutlak)</span>
-                  </div>
-                  <div class="bg-white/80 p-1.5 rounded-lg border border-blue-100">
-                    <span class="font-bold text-blue-700 block">8 &le; N &le; 14</span>
-                    <span>Nearest Neighbor (&lt;1ms cepat)</span>
-                  </div>
-                  <div class="bg-white/80 p-1.5 rounded-lg border border-blue-100">
-                    <span class="font-bold text-blue-700 block">N &ge; 15</span>
-                    <span>ACO (Optimasi Global)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-4 text-xs">
-                <div>
-                  <label class="font-bold text-slate-700 block mb-1">Pengaruh Feromon (&alpha;):</label>
-                  <input 
-                    type="number" 
-                    step="0.1" 
-                    v-model.number="store.acoParams.alpha"
-                    :disabled="store.isRouteStarted"
-                    class="w-full border border-slate-200 rounded-xl px-3 py-1.5 font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label class="font-bold text-slate-700 block mb-1">Pengaruh Jarak (&beta;):</label>
-                  <input 
-                    type="number" 
-                    step="0.1" 
-                    v-model.number="store.acoParams.beta"
-                    :disabled="store.isRouteStarted"
-                    class="w-full border border-slate-200 rounded-xl px-3 py-1.5 font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label class="font-bold text-slate-700 block mb-1">Laju Penguapan (&rho;):</label>
-                  <input 
-                    type="number" 
-                    step="0.05" 
-                    min="0.01" 
-                    max="0.99" 
-                    v-model.number="store.acoParams.rho"
-                    :disabled="store.isRouteStarted"
-                    class="w-full border border-slate-200 rounded-xl px-3 py-1.5 font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label class="font-bold text-slate-700 block mb-1">Konstanta Deposit (Q):</label>
-                  <input 
-                    type="number" 
-                    step="10" 
-                    v-model.number="store.acoParams.q"
-                    :disabled="store.isRouteStarted"
-                    class="w-full border border-slate-200 rounded-xl px-3 py-1.5 font-mono"
-                  />
-                </div>
-
-                <div class="col-span-2">
-                  <label class="font-bold text-slate-700 block mb-1">Iterasi Maksimal:</label>
-                  <input 
-                    type="number" 
-                    step="10" 
-                    min="10" 
-                    max="500" 
-                    v-model.number="store.acoParams.iterations"
-                    :disabled="store.isRouteStarted"
-                    class="w-full border border-slate-200 rounded-xl px-3 py-1.5 font-mono"
-                  />
-                </div>
-              </div>
-
-              <button 
-                @click="resetParamsToDefault()"
-                :disabled="store.isRouteStarted"
-                class="text-xs text-indigo-600 font-bold hover:underline"
-              >
-                Kembalikan Nilai Bawaan (Default)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- =================== TAB 4: HISTORY =================== -->
+        <!-- =================== TAB 3: HISTORY =================== -->
         <div v-else-if="store.bottomDrawerTab === 'history'" class="space-y-4">
           <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center text-xs">
@@ -562,10 +401,44 @@
       </div>
     </div>
     </Transition>
+
+    <div
+      v-if="showResetConfirmation"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+      @click.self="showResetConfirmation = false"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reset-dialog-title"
+        aria-describedby="reset-dialog-description"
+        class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+      >
+        <h2 id="reset-dialog-title" class="text-base font-extrabold text-slate-900">Reset sesi?</h2>
+        <p id="reset-dialog-description" class="mt-2 text-sm text-slate-600">
+          Paket, kurir, hasil, dan riwayat akan dihapus. Apakah Anda yakin ingin mereset?
+        </p>
+        <div class="mt-6 flex justify-end gap-3">
+          <button
+            @click="showResetConfirmation = false"
+            class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+          >
+            Batalkan
+          </button>
+          <button
+            @click="confirmReset"
+            class="rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700"
+          >
+            Setuju, Reset
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useAppStore } from '../stores/appStore'
 
 defineProps({
@@ -575,11 +448,11 @@ defineProps({
 defineEmits(['advance-all'])
 
 const store = useAppStore()
+const showResetConfirmation = ref(false)
 
 function confirmReset() {
-  if (window.confirm('Reset sesi akan menghapus paket, kurir, hasil, dan riwayat. Lanjutkan?')) {
-    store.resetSession()
-  }
+  showResetConfirmation.value = false
+  store.resetSession()
 }
 
 function getCourierName(courierId) {
@@ -592,13 +465,4 @@ function getCourierColor(courierId) {
   return c ? c.color : '#3B82F6'
 }
 
-function resetParamsToDefault() {
-  store.knnParams.k = 1
-  store.knnParams.balanceLoad = false
-  store.acoParams.alpha = 1.0
-  store.acoParams.beta = 3.0
-  store.acoParams.rho = 0.5
-  store.acoParams.q = 100.0
-  store.acoParams.iterations = 100
-}
 </script>

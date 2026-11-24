@@ -31,6 +31,22 @@
       </span>
     </div>
 
+    <!-- Quick Metrics (Paket & Kurir) Pojok Kanan Atas -->
+    <div 
+      v-if="!evaluationMode" 
+      class="absolute top-4 right-14 z-10 flex items-center space-x-2 text-xs pointer-events-auto select-none"
+    >
+      <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-line shadow-sm">
+        <span class="text-slate-400">Paket:</span>
+        <span class="font-bold text-ink font-mono">{{ store.packages.length }}/50</span>
+      </div>
+
+      <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-line shadow-sm">
+        <span class="text-slate-400">Kurir:</span>
+        <span class="font-bold text-ink font-mono">{{ store.couriers.length }}/10</span>
+      </div>
+    </div>
+
     <!-- Fallback / Notice Alert -->
     <div
       v-if="!evaluationMode && store.isHaversineFallback && store.knnSteps.length"

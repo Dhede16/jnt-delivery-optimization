@@ -85,7 +85,7 @@ export const useAppStore = defineStore('app', {
 
     // UI Panels
     isBottomDrawerOpen: false,
-    bottomDrawerTab: 'packages', // 'packages' | 'couriers' | 'params' | 'scenarios' | 'history'
+    bottomDrawerTab: 'packages', // 'packages' | 'couriers' | 'history'
     selectedStepPackageId: null,
     selectedCourierForAco: 'c1'
   }),
