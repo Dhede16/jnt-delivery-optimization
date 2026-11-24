@@ -38,7 +38,6 @@ export const useAppStore = defineStore('app', {
     couriers: [],
     packages: [],
     activeCourierId: null,
-    clickMode: 'package', // 'package' | 'ref_point'
     
     // Parameters
     knnParams: {
@@ -153,10 +152,6 @@ export const useAppStore = defineStore('app', {
       }
     },
 
-    setClickMode(mode) {
-      this.clickMode = mode
-    },
-
     setActiveCourier(courierId) {
       this.activeCourierId = courierId
     },
@@ -188,7 +183,6 @@ export const useAppStore = defineStore('app', {
       }
       this.couriers.push(newCourier)
       this.activeCourierId = id
-      this.clickMode = 'ref_point'
       await this.refreshPackageAllocation()
     },
 
@@ -226,33 +220,6 @@ export const useAppStore = defineStore('app', {
       if (!courier) return
       courier.ref_points = courier.ref_points.filter(rp => rp.id !== refPointId)
       await this.refreshPackageAllocation()
-    },
-
-    addPackage(lat, lng, name = '') {
-      if (this.isRouteStarted || this.isCalculating) return false
-      if (!this.canStartPackageInput) {
-        this.errorMessage = 'Tambahkan kurir dan minimal satu titik acuan untuk setiap kurir sebelum menyebar paket.'
-        this.bottomDrawerTab = 'couriers'
-        this.isBottomDrawerOpen = true
-        this.clickMode = 'ref_point'
-        return false
-      }
-      if (this.packages.length >= 50) {
-        alert('Maksimal 50 paket. Titik ke-51 ditolak.')
-        return false
-      }
-      const num = this.packages.length + 1
-      const id = `P${String(num).padStart(2, '0')}`
-      this.packages.push({
-        id,
-        name: name || `Paket #${num}`,
-        lat: Number(lat.toFixed(5)),
-        lng: Number(lng.toFixed(5)),
-        courier_id: null,
-        order: null
-      })
-      this.resetRoutingStateOnly()
-      return true
     },
 
     async removePackage(pkgId) {
@@ -305,7 +272,6 @@ export const useAppStore = defineStore('app', {
       this.packages = []
       this.couriers = []
       this.activeCourierId = null
-      this.clickMode = 'package'
       this.errorMessage = ''
       this.warningMessage = ''
       this.allocations = {}

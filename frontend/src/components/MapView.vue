@@ -2,27 +2,13 @@
   <div class="relative w-full h-full">
     <!-- Leaflet Map Container -->
     <div ref="mapContainer" class="w-full h-full z-0 cursor-crosshair"></div>
-    <div
-      v-if="isPackageLoading"
-      class="package-loading-cursor"
-      :style="{ left: `${cursorPosition.x}px`, top: `${cursorPosition.y}px` }"
-      role="status"
-      aria-label="Menghitung kurir dan rute paket"
-    ></div>
-
     <!-- Mode Badge & Tooltip -->
     <div v-if="!evaluationMode" class="map-mode-banner absolute top-4 left-4 z-10 px-4 py-2 rounded-xl flex items-center space-x-3 pointer-events-auto">
       <div class="flex items-center space-x-2">
-        <span 
-          class="w-3 h-3 rounded-full animate-pulse" 
-          :class="store.clickMode === 'package' ? 'bg-primary' : 'bg-amber-500'"
-        ></span>
+        <span class="w-3 h-3 rounded-full animate-pulse bg-amber-500"></span>
         <span class="text-xs font-semibold text-slate-700">
           Klik Peta: 
-          <span class="text-primary font-bold" v-if="store.clickMode === 'package'">
-            {{ store.canStartPackageInput ? `Tambah Titik Paket (${store.packages.length}/50)` : 'Paket terkunci — atur kurir & acuan di panel bawah' }}
-          </span>
-          <span class="text-amber-600 font-bold" v-else>Tambah Titik Acuan ({{ store.activeCourier?.name || 'Pilih Kurir' }})</span>
+          <span class="text-amber-600 font-bold">Tambah Titik Acuan ({{ store.activeCourier?.name || 'Pilih Kurir' }})</span>
         </span>
       </div>
       <div class="h-4 w-px bg-slate-300"></div>
@@ -70,8 +56,6 @@ const props = defineProps({
   evaluationMode: { type: Boolean, default: false }
 })
 const mapContainer = ref(null)
-const isPackageLoading = ref(false)
-const cursorPosition = ref({ x: 0, y: 0 })
 const evaluationMethods = [
   { name: 'ACO' },
   { name: 'Nearest Neighbor' },
@@ -125,28 +109,13 @@ function initMap() {
     if (store.isRouteStarted || store.isCalculating) return
     const { lat, lng } = e.latlng
 
-    if (store.clickMode === 'ref_point') {
-      if (!store.activeCourierId) {
-        store.errorMessage = 'Tambahkan dan pilih kurir di tab Kelola Kurir sebelum menambahkan titik acuan.'
-        store.bottomDrawerTab = 'couriers'
-        store.isBottomDrawerOpen = true
-        return
-      }
-      store.addRefPoint(store.activeCourierId, lat, lng)
-    } else if (store.clickMode === 'package') {
-      if (!store.addPackage(lat, lng)) return
-      cursorPosition.value = { x: e.originalEvent.clientX, y: e.originalEvent.clientY }
-      isPackageLoading.value = true
-      store.calculateRoutes(false).finally(() => {
-        isPackageLoading.value = false
-      })
+    if (!store.activeCourierId) {
+      store.errorMessage = 'Tambahkan dan pilih kurir di tab Kelola Kurir sebelum menambahkan titik acuan.'
+      store.bottomDrawerTab = 'couriers'
+      store.isBottomDrawerOpen = true
+      return
     }
-  })
-
-  map.on('mousemove', (e) => {
-    if (isPackageLoading.value) {
-      cursorPosition.value = { x: e.originalEvent.clientX, y: e.originalEvent.clientY }
-    }
+    store.addRefPoint(store.activeCourierId, lat, lng)
   })
 
   renderAll()

@@ -106,7 +106,7 @@
       <!-- Tabs Navigation -->
       <div class="flex border-b border-slate-200 bg-white px-6">
         <button 
-          @click="store.bottomDrawerTab = 'packages'; store.clickMode = 'package'"
+          @click="store.bottomDrawerTab = 'packages'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
           :class="store.bottomDrawerTab === 'packages' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
@@ -115,7 +115,7 @@
         </button>
 
         <button 
-          @click="store.bottomDrawerTab = 'couriers'; store.clickMode = 'ref_point'"
+          @click="store.bottomDrawerTab = 'couriers'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
           :class="store.bottomDrawerTab === 'couriers' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
@@ -124,7 +124,7 @@
         </button>
 
         <button 
-          @click="store.bottomDrawerTab = 'history'; store.clickMode = 'package'"
+          @click="store.bottomDrawerTab = 'history'"
           class="py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5"
           :class="store.bottomDrawerTab === 'history' ? 'border-primary text-primary bg-primary-soft' : 'border-transparent text-slate-500 hover:text-slate-800'"
         >
@@ -140,23 +140,11 @@
         
         <!-- =================== TAB 1: PACKAGES & SCENARIOS =================== -->
         <div v-if="store.bottomDrawerTab === 'packages'" class="space-y-4">
-          <!-- Top Tool Bar: Presets & Mode Selector -->
+          <!-- Top Tool Bar: Presets -->
           <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
-            <!-- Mode Toggle -->
-            <div class="flex items-center space-x-2">
-              <span class="text-xs font-bold text-slate-700">Mode Klik Peta:</span>
-              <button
-                @click="store.clickMode = 'package'"
-                :disabled="!store.canStartPackageInput"
-                class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
-                :class="store.clickMode === 'package' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-              >
-                📦 Tambah Paket
-              </button>
-              <span v-if="!store.canStartPackageInput" class="text-xs text-amber-700">
+            <div v-if="!store.canStartPackageInput" class="flex items-center space-x-2 text-xs text-amber-700">
                 Tambahkan kurir dan titik acuan melalui tab
-                <button class="font-bold underline" @click="store.bottomDrawerTab = 'couriers'; store.clickMode = 'ref_point'">Kelola Kurir</button>.
-              </span>
+                <button class="font-bold underline" @click="store.bottomDrawerTab = 'couriers'">Kelola Kurir</button>.
             </div>
 
             <!-- Scenario Preset Loader (FR-18) -->
@@ -190,7 +178,7 @@
             </div>
 
             <div v-if="store.packages.length === 0" class="py-8 text-center text-xs text-slate-400">
-              <template v-if="store.canStartPackageInput">Belum ada paket. Klik di peta atau pilih skenario uji di atas.</template>
+              <template v-if="store.canStartPackageInput">Belum ada paket. Pilih skenario uji di atas.</template>
               <template v-else>Input paket terkunci sampai kurir dan titik acuan siap.</template>
             </div>
 
@@ -344,7 +332,7 @@
 
               <!-- Set Active Button -->
               <button 
-                @click="store.activeCourierId = c.id; store.clickMode = 'ref_point'"
+                @click="store.activeCourierId = c.id"
                 :disabled="store.isRouteStarted || store.isCalculating"
                 class="mt-3 w-full py-1.5 rounded-xl text-xs font-bold transition-all border"
                 :class="store.activeCourierId === c.id 
