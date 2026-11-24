@@ -122,7 +122,7 @@
           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
         >
         <div class="mt-2 max-h-60 space-y-1 overflow-y-auto">
-          <p v-if="addressQuery.trim().length < 3" class="px-2 py-2 text-[11px] text-slate-500">Ketik minimal 3 karakter untuk mencari.</p>
+          <p v-if="addressQuery.trim().length < 3" class="px-2 py-2 text-[11px] text-slate-500"></p>
           <p v-else-if="isSearchingAddresses" role="status" class="px-2 py-2 text-[11px] text-slate-500">Mencari alamat…</p>
           <p v-else-if="addressSearchError" role="alert" class="px-2 py-2 text-[11px] text-red-600">{{ addressSearchError }}</p>
           <p v-else-if="addressSuggestions.length === 0" class="px-2 py-2 text-[11px] text-slate-500">Tidak ada saran alamat.</p>
@@ -142,7 +142,6 @@
           <p v-if="!store.canStartPackageInput" class="px-2 py-2 text-[11px] text-amber-700">Tambahkan kurir dan titik acuan sebelum menambah paket.</p>
           <p v-else-if="store.packages.length >= 50" class="px-2 py-2 text-[11px] text-amber-700">Batas 50 paket sudah tercapai.</p>
         </div>
-        <p class="mt-2 border-t border-slate-100 pt-2 text-[10px] text-slate-400">Saran alamat menggunakan Photon.</p>
       </div>
 
       <div v-if="isCourierPickerOpen" class="absolute right-full top-1/2 mr-2 max-h-[70vh] w-52 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/80 bg-white/95 p-2 shadow-xl backdrop-blur-md">
