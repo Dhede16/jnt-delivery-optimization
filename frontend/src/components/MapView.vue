@@ -362,15 +362,15 @@ function initMap() {
 
   // Center around Samarinda Juanda
   map = L.map(mapContainer.value, {
-    zoomControl: false
+    zoomControl: false,
+    attributionControl: false
   }).setView([store.depot.lat, store.depot.lng], 13)
 
   if (props.evaluationMode) L.control.zoom({ position: 'topright' }).addTo(map)
 
   // OpenStreetMap Tile Layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors | J&T Samarinda'
+    maxZoom: 19
   }).addTo(map)
 
   // Initialize Layer Groups
@@ -552,7 +552,7 @@ function renderPackages() {
           <div style="font-size: 11px; color: #475569; margin-top: 2px;">
             Kurir: <strong>${courier ? courier.name : 'Belum dialokasikan'}</strong>
           </div>
-          ${pkg.order ? `<div style="font-size: 11px; color: #0284c7;">Urutan Kunjungan ACO: #${pkg.order}</div>` : ''}
+          ${pkg.order ? `<div style="font-size: 11px; color: #0284c7;">Urutan Kunjungan: #${pkg.order}</div>` : ''}
           <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">${pkg.lat.toFixed(5)}, ${pkg.lng.toFixed(5)}</div>
           ${!store.isRouteStarted ? `
             <button onclick="window.__removePackage('${pkg.id}')" style="margin-top: 6px; background: #fee2e2; color: #dc2626; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">

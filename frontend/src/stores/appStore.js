@@ -486,7 +486,7 @@ export const useAppStore = defineStore('app', {
 
       // Record History
       const stepNumber = this.stepHistory.filter(h => h.courierId === courierId).length + 1
-      const fromName = stepNumber === 1 ? 'Depot Juanda' : `Paket #${this.stepHistory.filter(h => h.courierId === courierId).slice(-1)[0]?.toName || 'Sebelumnya'}`
+      const fromName = stepNumber === 1 ? 'Depot Utama' : `Paket #${this.stepHistory.filter(h => h.courierId === courierId).slice(-1)[0]?.toName || 'Sebelumnya'}`
       this.stepHistory.push({
         courierId,
         courierName: courier.name,

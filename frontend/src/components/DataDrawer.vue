@@ -46,7 +46,7 @@
           v-if="store.canCalculate && !store.isRouteStarted"
           @click="store.calculateRoutes()"
           :disabled="!store.canCalculate"
-          class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-ink font-extrabold px-5 py-2 rounded-xl text-xs shadow-lg transition-all flex items-center space-x-2"
+          class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold px-5 py-2 rounded-xl text-xs shadow-lg transition-all flex items-center space-x-2"
         >
           <span>{{ store.isCalculating ? 'Menghitung...' : 'Mulai Simulasi' }}</span>
           <span v-if="!store.isCalculating">🚀</span>
@@ -72,11 +72,10 @@
             v-else
             @click="$emit('advance-all')"
             :disabled="!store.canAdvanceAny || store.isCalculating || isAnimating"
-            class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-ink font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center space-x-1"
+            class="bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center space-x-1"
             title="Lanjut 1 langkah untuk semua kurir aktif"
           >
-            <span>Lanjut Semua</span>
-            <span>⏩</span>
+            <span>Jalankan Kurir</span>
           </button>
 
           <label class="flex items-center gap-2 whitespace-nowrap text-xs font-bold text-slate-700" @click.stop>
@@ -139,11 +138,6 @@
         <div v-if="store.bottomDrawerTab === 'packages'" class="space-y-4">
           <!-- Top Tool Bar: Presets -->
           <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
-            <div v-if="!store.canStartPackageInput" class="flex items-center space-x-2 text-xs text-amber-700">
-                Tambahkan kurir dan titik acuan melalui tab
-                <button class="font-bold underline" @click="store.bottomDrawerTab = 'couriers'">Kelola Kurir</button>.
-            </div>
-
             <!-- Scenario Preset Loader (FR-18) -->
             <div class="flex items-center space-x-2">
               <span class="text-xs font-bold text-slate-700">Muat Skenario Uji:</span>
@@ -188,7 +182,7 @@
                     <th class="p-2.5">Latitude</th>
                     <th class="p-2.5">Longitude</th>
                     <th class="p-2.5">Kurir Terpilih</th>
-                    <th class="p-2.5">Urutan ACO</th>
+                    <th class="p-2.5">Urutan</th>
                     <th class="p-2.5 text-right">Aksi</th>
                   </tr>
                 </thead>
