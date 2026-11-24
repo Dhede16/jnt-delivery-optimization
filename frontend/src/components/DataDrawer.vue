@@ -6,35 +6,32 @@
     <!-- Drawer Drag / Toggle Handle Bar -->
     <div 
       @click="store.isBottomDrawerOpen = !store.isBottomDrawerOpen"
-      class="control-drawer-header h-16 px-6 flex items-center justify-between cursor-pointer select-none transition-colors"
+      class="control-drawer-header relative h-16 px-6 flex items-center justify-between cursor-pointer select-none transition-colors"
     >
-      <div class="flex items-center space-x-4">
-        <!-- Drawer Chevron Indicator -->
-        <button
-          type="button"
-          @click.stop="store.isBottomDrawerOpen = !store.isBottomDrawerOpen"
-          :aria-expanded="store.isBottomDrawerOpen"
-          aria-label="Buka atau tutup panel masukan dan kontrol"
-          class="w-10 h-10 rounded-full bg-primary-soft flex items-center justify-center text-primary"
-        >
-          <svg 
-            class="w-5 h-5 transform transition-transform" 
-            :class="store.isBottomDrawerOpen ? 'rotate-180' : 'rotate-0'"
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-          </svg>
-        </button>
-
-        <div>
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Panel Masukan Data & Kontrol</span>
-          <span class="text-sm font-extrabold text-ink">
-            {{ store.isBottomDrawerOpen ? 'Klik untuk Menyembunyikan' : 'Klik untuk Mengangkat & Memasukkan Data' }}
-          </span>
-        </div>
+      <div class="flex items-center">
+        <span class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 truncate max-w-[130px] sm:max-w-none">
+          Panel Masukan Data & Kontrol
+        </span>
       </div>
+
+      <!-- Drawer Chevron Indicator -->
+      <button
+        type="button"
+        @click.stop="store.isBottomDrawerOpen = !store.isBottomDrawerOpen"
+        :aria-expanded="store.isBottomDrawerOpen"
+        aria-label="Buka atau tutup panel masukan dan kontrol"
+        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary-soft flex items-center justify-center text-primary shadow-sm hover:bg-primary-soft/80 transition-colors"
+      >
+        <svg 
+          class="w-5 h-5 transform transition-transform duration-300" 
+          :class="store.isBottomDrawerOpen ? 'rotate-180' : 'rotate-0'"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+        </svg>
+      </button>
 
       <!-- Quick Metrics Pills -->
       <div class="flex items-center space-x-3 text-xs" @click.stop>

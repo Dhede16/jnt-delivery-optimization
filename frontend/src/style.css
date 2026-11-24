@@ -207,10 +207,6 @@ button {
     gap: 8px;
   }
 
-  .control-drawer-header > div:first-child > div:last-child span:first-child {
-    display: none;
-  }
-
   .control-drawer-header > div:last-child {
     gap: 6px;
   }
