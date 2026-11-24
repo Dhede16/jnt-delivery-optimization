@@ -287,7 +287,7 @@
               <!-- Ref Points Info -->
               <div class="bg-slate-50 rounded-xl p-2.5 text-xs space-y-1.5 border border-slate-100">
                 <div class="flex justify-between text-slate-600 font-semibold">
-                  <span>Titik Acuan (KNN Data Latih):</span>
+                  <span>Titik Acuan:</span>
                   <span class="font-bold font-mono">{{ c.ref_points.length }} titik</span>
                 </div>
                 <div class="flex flex-wrap gap-1">
