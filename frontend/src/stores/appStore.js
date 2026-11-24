@@ -251,6 +251,15 @@ export const useAppStore = defineStore('app', {
       if (this.packages.length > 0) await this.calculateRoutes(false)
     },
 
+    async movePackage(pkgId, lat, lng) {
+      if (this.isRouteStarted) return
+      const pkg = this.packages.find(p => p.id === pkgId)
+      if (!pkg) return
+      pkg.lat = Number(lat.toFixed(5))
+      pkg.lng = Number(lng.toFixed(5))
+      await this.refreshPackageAllocation()
+    },
+
     async loadScenario(scenarioId) {
       if (this.isRouteStarted || this.isCalculating) return
       if (!this.canStartPackageInput) {

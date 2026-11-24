@@ -5,11 +5,11 @@
     <!-- Active Map Feature -->
     <div v-if="!evaluationMode" class="map-mode-banner absolute top-4 left-4 z-10 flex items-center space-x-3 rounded-xl px-4 py-2 pointer-events-auto">
       <div class="flex items-center gap-2">
-        <span class="h-3 w-3 rounded-full" :class="inputMode === 'package' ? 'bg-primary' : 'bg-amber-500'"></span>
+        <span class="h-3 w-3 rounded-full" :class="inputMode === 'package' ? 'bg-primary' : inputMode === 'move' ? 'bg-blue-500' : 'bg-amber-500'"></span>
         <div class="flex flex-col">
           <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Fitur aktif</span>
-          <span class="text-xs font-bold" :class="inputMode === 'package' ? 'text-primary' : 'text-amber-600'">
-            {{ inputMode === 'package' ? 'Tambah Paket' : `Titik Acuan — ${store.activeCourier?.name || 'Pilih Kurir'}` }}
+          <span class="text-xs font-bold" :class="inputMode === 'package' ? 'text-primary' : inputMode === 'move' ? 'text-blue-600' : 'text-amber-600'">
+            {{ inputMode === 'package' ? 'Tambah Paket' : inputMode === 'move' ? 'Pindahkan Paket' : `Titik Acuan — ${store.activeCourier?.name || 'Pilih Kurir'}` }}
           </span>
         </div>
       </div>
@@ -86,6 +86,20 @@
               </svg>
             </button>
         </div>
+        <button
+          type="button"
+          @click="inputMode = 'move'"
+          :aria-pressed="inputMode === 'move'"
+          aria-label="Pindahkan paket dengan menyeret marker"
+          title="Pindahkan Paket"
+          :disabled="store.isRouteStarted || store.isCalculating"
+          class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+          :class="inputMode === 'move' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-primary-soft hover:text-primary'"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+            <path d="M9 11V5a2 2 0 0 1 4 0v6-2a2 2 0 0 1 4 0v3-1a2 2 0 0 1 4 0v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-5.2-3L5 15a2 2 0 0 1 3-2.6L9 14" />
+          </svg>
+        </button>
         <div class="mx-1 my-0.5 h-px bg-slate-200"></div>
         <button
           type="button"
@@ -371,6 +385,7 @@ function initMap() {
   map.on('click', (e) => {
     if (props.evaluationMode) return
     if (store.isRouteStarted || store.isCalculating) return
+    if (inputMode.value === 'move') return
     const { lat, lng } = e.latlng
 
     if (inputMode.value === 'package') {
@@ -396,6 +411,8 @@ watch(
     store.couriers,
     store.courierStates,
     store.isRouteStarted,
+    store.isCalculating,
+    inputMode.value,
     store.activeCourierId
   ],
   () => {
@@ -506,7 +523,10 @@ function renderPackages() {
       iconAnchor: [14, 14]
     })
 
-    const marker = L.marker([pkg.lat, pkg.lng], { icon })
+    const marker = L.marker([pkg.lat, pkg.lng], {
+      icon,
+      draggable: inputMode.value === 'move' && !store.isRouteStarted && !store.isCalculating
+    })
       .bindPopup(`
         <div style="font-size: 12px; padding: 2px;">
           <div style="font-weight: bold; color: ${color};">${escapeHtml(pkg.name || pkg.id)}</div>
@@ -522,6 +542,12 @@ function renderPackages() {
           ` : ''}
         </div>
       `)
+    if (marker.options.draggable) {
+      marker.on('dragend', async (event) => {
+        const { lat, lng } = event.target.getLatLng()
+        await store.movePackage(pkg.id, lat, lng)
+      })
+    }
     marker.addTo(packagesLayer)
   })
 }
