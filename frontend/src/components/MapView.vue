@@ -461,7 +461,7 @@ function renderDepot() {
     .bindPopup(`
       <div style="font-family: inherit; font-size: 12px; padding: 4px;">
         <strong style="color: #2563EB; font-size: 13px;">${d.name}</strong>
-        <p style="margin: 4px 0 0; color: #475569;">Pusat Distribusi Utama J&T Samarinda</p>
+        <p style="margin: 4px 0 0; color: #475569;">Pusat Distribusi Paket</p>
         <p style="margin: 2px 0 0; font-size: 10px; color: #64748b;">${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}</p>
       </div>
     `)
