@@ -19,62 +19,112 @@
       </span>
     </div>
 
-    <div v-if="!evaluationMode" role="toolbar" aria-label="Kontrol peta" class="absolute right-4 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-1 rounded-2xl border border-white/80 bg-white/90 p-1.5 shadow-xl backdrop-blur-md">
-      <button
-        type="button"
-        @click="inputMode = 'package'"
-        :aria-pressed="inputMode === 'package'"
-        aria-label="Tambah paket dengan klik peta"
-        title="Tambah Paket"
-        :disabled="store.isRouteStarted || store.isCalculating"
-        class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-        :class="inputMode === 'package' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-primary-soft hover:text-primary'"
-      >
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
-          <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" />
-          <path d="m4.3 7.6 7.7 4.5 7.7-4.5M12 21v-9" />
-          <path d="M16.5 12.5h5m-2.5-2.5v5" />
-        </svg>
-      </button>
-      <button
-        type="button"
-        @click="inputMode = 'reference'"
-        :aria-pressed="inputMode === 'reference'"
-        aria-label="Tambah titik acuan untuk kurir terpilih dengan klik peta"
-        :title="`Titik Acuan${store.activeCourier ? ` — ${store.activeCourier.name}` : ''}`"
-        :disabled="store.isRouteStarted || store.isCalculating"
-        class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-        :class="inputMode === 'reference' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-primary-soft hover:text-primary'"
-      >
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
-          <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-          <circle cx="12" cy="10" r="2.5" />
-          <path d="M18 3v4m-2-2h4" />
-        </svg>
-      </button>
-      <div class="mx-1 my-0.5 h-px bg-slate-200"></div>
-      <button
-        type="button"
-        @click="map?.zoomIn()"
-        aria-label="Perbesar peta"
-        title="Zoom In"
-        class="flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-primary-soft hover:text-primary"
-      >
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-      </button>
-      <button
-        type="button"
-        @click="map?.zoomOut()"
-        aria-label="Perkecil peta"
-        title="Zoom Out"
-        class="flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-primary-soft hover:text-primary"
-      >
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5">
-          <path d="M5 12h14" />
-        </svg>
-      </button>
+    <div v-if="!evaluationMode" role="toolbar" aria-label="Kontrol peta" class="absolute right-4 top-1/2 z-20 -translate-y-1/2">
+      <div class="flex flex-col gap-1 rounded-2xl border border-white/80 bg-white/90 p-1.5 shadow-xl backdrop-blur-md">
+        <button
+          type="button"
+          @click="inputMode = 'package'"
+          :aria-pressed="inputMode === 'package'"
+          aria-label="Tambah paket dengan klik peta"
+          title="Tambah Paket"
+          :disabled="store.isRouteStarted || store.isCalculating"
+          class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+          :class="inputMode === 'package' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-primary-soft hover:text-primary'"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+            <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" />
+            <path d="m4.3 7.6 7.7 4.5 7.7-4.5M12 21v-9" />
+            <path d="M16.5 12.5h5m-2.5-2.5v5" />
+          </svg>
+        </button>
+        <div class="relative h-11 w-11">
+            <button
+              type="button"
+              @click="inputMode = 'reference'"
+              :aria-pressed="inputMode === 'reference'"
+              aria-label="Tambah titik acuan untuk kurir terpilih dengan klik peta"
+              :title="`Titik Acuan${store.activeCourier ? ` — ${store.activeCourier.name}` : ''}`"
+              :disabled="store.isRouteStarted || store.isCalculating"
+              class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+              :class="inputMode === 'reference' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-primary-soft hover:text-primary'"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+                <circle cx="12" cy="10" r="2.5" />
+                <path d="M18 3v4m-2-2h4" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              @click="isCourierPickerOpen = !isCourierPickerOpen"
+              :aria-expanded="isCourierPickerOpen"
+              aria-label="Buka pilihan kurir untuk titik acuan"
+              title="Pilih Kurir"
+              :disabled="store.isRouteStarted || store.isCalculating"
+              class="!absolute !bottom-0 !right-0 !z-10 !h-5 !min-h-0 !w-5 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-primary-soft hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
+                <path :d="isCourierPickerOpen ? 'm10 18 6-6-6-6' : 'm14 18-6-6 6-6'" />
+              </svg>
+            </button>
+        </div>
+        <div class="mx-1 my-0.5 h-px bg-slate-200"></div>
+        <button
+          type="button"
+          @click="map?.zoomIn()"
+          aria-label="Perbesar peta"
+          title="Zoom In"
+          class="flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-primary-soft hover:text-primary"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          @click="map?.zoomOut()"
+          aria-label="Perkecil peta"
+          title="Zoom Out"
+          class="flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-primary-soft hover:text-primary"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5">
+            <path d="M5 12h14" />
+          </svg>
+        </button>
+      </div>
+
+      <div v-if="isCourierPickerOpen" class="absolute right-full top-1/2 mr-2 max-h-[70vh] w-52 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/80 bg-white/95 p-2 shadow-xl backdrop-blur-md">
+        <h2 class="px-2 py-1.5 text-xs font-extrabold text-slate-700">Pilih Kurir</h2>
+        <button
+          v-for="courier in store.couriers"
+          :key="courier.id"
+          type="button"
+          @click="selectCourier(courier.id)"
+          :aria-pressed="store.activeCourierId === courier.id"
+          :disabled="store.isRouteStarted || store.isCalculating"
+          class="flex w-full items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+          :class="store.activeCourierId === courier.id ? 'border-primary bg-primary-soft' : 'border-transparent hover:bg-slate-50'"
+        >
+          <span class="h-3 w-3 shrink-0 rounded-full" :style="{ backgroundColor: courier.color }"></span>
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-xs font-bold text-slate-800">{{ courier.name }}</span>
+            <span class="block text-[10px] text-slate-500">{{ courier.ref_points.length }} titik acuan</span>
+          </span>
+          <svg v-if="store.activeCourierId === courier.id" aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 shrink-0 text-primary">
+            <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.2 7.26a1 1 0 0 1-1.42.003L3.29 9.164a1 1 0 1 1 1.42-1.407l4.09 4.13 6.49-6.59a1 1 0 0 1 1.414-.006Z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <div v-if="store.couriers.length === 0" class="px-2 py-2 text-[11px] text-slate-500">
+          Belum ada kurir.
+          <button
+            type="button"
+            class="ml-1 font-bold text-primary hover:underline"
+            @click="store.bottomDrawerTab = 'couriers'; store.isBottomDrawerOpen = true"
+          >
+            Tambah Kurir
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Quick Metrics (Paket & Kurir) Pojok Kanan Atas -->
@@ -117,6 +167,7 @@ const props = defineProps({
 })
 const mapContainer = ref(null)
 const inputMode = ref('reference')
+const isCourierPickerOpen = ref(false)
 const evaluationMethods = [
   { name: 'ACO' },
   { name: 'Nearest Neighbor' },
@@ -124,6 +175,12 @@ const evaluationMethods = [
   { name: 'Urutan Klik' }
 ]
 let map = null
+
+function selectCourier(courierId) {
+  store.setActiveCourier(courierId)
+  inputMode.value = 'reference'
+  isCourierPickerOpen.value = false
+}
 
 // Layers
 let depotLayer = null
